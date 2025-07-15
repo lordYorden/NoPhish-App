@@ -29,6 +29,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_notification"
             android:layout_width="match_parent"
+            android:visibility="gone"
             tools:listitem="@layout/notification_item"
             android:layout_height="wrap_content"/>
 

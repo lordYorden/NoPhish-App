@@ -1,4 +1,4 @@
-package dev.lordyorden.as_no_phish_detector
+package dev.lordyorden.as_no_phish_detector.ui.notifications
 
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -12,11 +12,11 @@ import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
 
 class NotificationViewModel : ViewModel() {
 
-    private val _event = MutableLiveData<Notification?>(null)
-    val newNotif: LiveData<Notification?> = _event
+    private val _event = MutableLiveData<List<Notification>?>(null)
+    val newNotif: LiveData<List<Notification>?> = _event
 
-    private val _toRemove = MutableLiveData<Notification?>(null)
-    val removeNotif: LiveData<Notification?> = _toRemove
+    private val _toRemove = MutableLiveData<List<Notification>?>(null)
+    val removeNotif: LiveData<List<Notification>?> = _toRemove
 
     private val controller = NotificationController()
     //val SEARCH_TYPE = "user_details"
@@ -26,12 +26,12 @@ class NotificationViewModel : ViewModel() {
     lateinit var lifecycle: LifecycleCoroutineScope
 
 
-    fun setEvent(obj: Notification) {
-        _event.postValue(obj)
+    fun setEvent(notif: List<Notification>) {
+        _event.postValue(notif)
     }
 
-    fun setRemove(obj: Notification) {
-        _toRemove.postValue(obj)
+    fun setRemove(removedNotif: List<Notification>) {
+        _toRemove.postValue(removedNotif)
     }
 
 //    fun setNurse(email: String){
@@ -44,27 +44,30 @@ class NotificationViewModel : ViewModel() {
         //nurseObject ?: return
 
         val notificationsLeft = existing.toMutableList()
+        val addedNotif = mutableListOf<Notification>()
 
         controller.getNotifications(object : GenericCallback<PagedList<Notification>> {
             override fun success(data: PagedList<Notification>?) {
                 data?.let { obj->
                     if(obj.items.isNotEmpty()){
                         obj.items.forEach { notif ->
-
                             if(existing.find { n -> n.id == notif.id } == null)
-                                _event.value = notif
+                                addedNotif.add(notif)
                             else{
                                 notificationsLeft.removeIf { n -> n.id == notif.id }
                             }
-
-
-
                         }
                     }
 
-                    notificationsLeft.forEach { removedNotif ->
-                        setRemove(removedNotif)
-                    }
+                    if (addedNotif.isNotEmpty())
+                        setEvent(addedNotif)
+
+                    if(notificationsLeft.isNotEmpty())
+                        setRemove(notificationsLeft)
+
+//                    notificationsLeft.forEach { removedNotif ->
+//                        setRemove(removedNotif)
+//                    }
 
                 }
             }

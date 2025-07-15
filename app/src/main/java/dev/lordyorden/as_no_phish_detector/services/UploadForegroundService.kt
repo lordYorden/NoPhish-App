@@ -179,10 +179,10 @@ class UploadForegroundService : Service() {
         notificationBuilder
             .setContentIntent(pendingIntent) // Open activity
             .setOngoing(true)
-            .setSmallIcon(R.drawable.ic_fish)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_fish))
-            .setContentTitle("Working in background")
-            .setContentText("Reading incoming sms messages")
+            .setSmallIcon(R.drawable.ic_nophish_color)
+            //.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_nophish_color))
+            .setContentTitle("Keeping you protected")
+            .setContentText("Scanning incoming messages and notifications")
 
         val notification = notificationBuilder.build()
 
