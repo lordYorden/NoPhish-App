@@ -101,11 +101,13 @@ class UploadForegroundService : Service() {
 
             val title = message.getString("title", "none")
             val body = message.getString("body", "none")
+            val packageName = message.getString("packageName", "none")
             val timestamp = message.getLong("timestamp", 0L)
+
 
             Log.i(TAG, "$timestamp new notification, title: $title: $body")
 
-            notificationController.uploadNotification(CreateNotification(title, body, timestamp), object : GenericCallback<Notification>{
+            notificationController.uploadNotification(CreateNotification(title, body, packageName, timestamp), object : GenericCallback<Notification>{
                 override fun success(data: Notification?) {
                     Log.i(TAG, "uploaded notification $data")
                 }

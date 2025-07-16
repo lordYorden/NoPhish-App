@@ -61,6 +61,7 @@ class NotificationReceiverService : NotificationListenerService() {
                 it.putExtra("body", body)
                 it.putExtra("timestamp", timestamp)
                 it.putExtra("isSMS", false)
+                it.putExtra("packageName", packageName)
                 it.action = UploadForegroundService.ACTION_START
             }
             startForegroundService(serviceIntent)

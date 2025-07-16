@@ -45,7 +45,7 @@
             android:id="@+id/app_icon"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:visibility="invisible"
+            android:visibility="visible"
             android:src="@drawable/ic_whatsapp"
             android:layout_alignParentEnd="true" />
     </RelativeLayout>

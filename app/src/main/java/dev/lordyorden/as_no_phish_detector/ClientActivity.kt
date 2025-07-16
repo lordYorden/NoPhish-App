@@ -92,7 +92,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
 
     override fun onRationaleDenied(requestCode: Int) {
         Toast.makeText(this, "rel denied $requestCode", Toast.LENGTH_SHORT).show()
-        permsViewModel.setRejected(requestCode)
+        //permsViewModel.setRejected(requestCode)
     }
 
 }

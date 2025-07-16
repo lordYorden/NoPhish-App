@@ -33,8 +33,8 @@ class SettingsFragment : Fragment() {
         return root
     }
 
-    
-    
+
+
     private fun initViews() {
         binding.postNotifMs.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked)
@@ -43,13 +43,18 @@ class SettingsFragment : Fragment() {
         }
 
         binding.smsMs.setOnCheckedChangeListener { _, isChecked ->
-            requestPerm("android.permission.READ_SMS", Constants.Perms.READ_SMS_CODE)
+            if (isChecked)
+                requestPerm("android.permission.READ_SMS", Constants.Perms.READ_SMS_CODE)
         }
 
-        binding.readNotifMs.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked)
-                requestPerm("android.permission.BIND_NOTIFICATION_LISTENER_SERVICE", Constants.Perms.READ_NOTIFICATION_CODE)
+        binding.readNotifBtn.setOnClickListener {
+            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
+
+//        binding.readNotifMs.setOnCheckedChangeListener { _, isChecked ->
+//            if (isChecked)
+//                requestPerm("android.permission.BIND_NOTIFICATION_LISTENER_SERVICE", Constants.Perms.READ_NOTIFICATION_CODE)
+//        }
 
         permsViewModel.permGranted.observe(viewLifecycleOwner) { granted->
             if(granted == null)
@@ -108,27 +113,48 @@ class SettingsFragment : Fragment() {
     }
 
     fun activatePerm(requestCode: Int) {
-        when(requestCode){
-            Constants.Perms.POST_NOTIFICATION_CODE -> binding.postNotifMs.isChecked = true
-            Constants.Perms.READ_SMS_CODE -> binding.smsMs.isChecked = true
-            Constants.Perms.READ_NOTIFICATION_CODE -> binding.readNotifMs.isChecked = true
+        when (requestCode) {
+            Constants.Perms.POST_NOTIFICATION_CODE -> {
+                binding.postNotifMs.isChecked = true
+                binding.postNotifMs.isClickable = false
+            }
+
+            Constants.Perms.READ_SMS_CODE -> {
+                binding.smsMs.isChecked = true
+                binding.postNotifMs.isClickable = false
+            }
+
+            Constants.Perms.READ_NOTIFICATION_CODE -> {//binding.readNotifMs.isChecked = true
+                //binding.postNotifMs.isActivated = false}
+            }
         }
-
-
     }
 
     fun deniedPerm(requestCode: Int) {
-        when(requestCode) {
-            Constants.Perms.POST_NOTIFICATION_CODE,Constants.Perms.READ_SMS_CODE -> {
-                startActivity(Intent(ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", requireActivity().packageName, null)
-                ))
+        when (requestCode) {
+            Constants.Perms.POST_NOTIFICATION_CODE -> {
+                startActivity(
+                    Intent(
+                        ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", requireActivity().packageName, null)
+                    )
+                )
                 binding.postNotifMs.isChecked = false
-                binding.smsMs.isChecked = false
             }
+
+            Constants.Perms.READ_SMS_CODE -> {
+                startActivity(
+                    Intent(
+                        ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", requireActivity().packageName, null)
+                    )
+                )
+                binding.smsMs.isChecked = false
+                binding.postNotifMs.isClickable = false
+            }
+
             Constants.Perms.READ_NOTIFICATION_CODE -> {
                 startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                binding.readNotifMs.isChecked = true
             }
         }
     }

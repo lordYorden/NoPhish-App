@@ -3,22 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
+    app:startDestination="@+id/nev_sms">
 
     <fragment
-        android:id="@+id/navigation_home"
+        android:id="@+id/nev_sms"
         android:name="dev.lordyorden.as_no_phish_detector.ui.home.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/nev_settings"
         android:name="dev.lordyorden.as_no_phish_detector.ui.settings.SettingsFragment"
         android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_settings" />
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/settings_to_notif"
+            app:destination="@id/nev_notification"
+            app:popUpTo="@id/nev_settings"
+            app:popUpToInclusive="true" />
+    </fragment>
 
     <fragment
-        android:id="@+id/navigation_notifications"
+        android:id="@+id/nev_notification"
         android:name="dev.lordyorden.as_no_phish_detector.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
