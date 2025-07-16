@@ -1,4 +1,4 @@
-package dev.lordyorden.as_no_phish_detector
+package dev.lordyorden.as_no_phish_detector.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.lordyorden.as_no_phish_detector.databinding.NotificationItemBinding
 import dev.lordyorden.as_no_phish_detector.models.Notification
 import dev.lordyorden.tradely.utilities.ImageLoader
-
 
 class NotificationAdapter(
     private val notifications: List<Notification>,
@@ -31,7 +30,9 @@ class NotificationAdapter(
                 lblTitle.text = title
 
                 if (packageName != null && packageName != "none")
-                    ImageLoader.getInstance().loadAppIcon(packageName!!, appIcon)
+                    ImageLoader.Companion.getInstance().loadAppIcon(packageName!!,
+                        appIcon
+                    )
             }
         }
     }

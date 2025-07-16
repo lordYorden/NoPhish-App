@@ -7,9 +7,9 @@
 
     <fragment
         android:id="@+id/nev_sms"
-        android:name="dev.lordyorden.as_no_phish_detector.ui.home.HomeFragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.sms.SmsFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_sms" />
 
     <fragment
         android:id="@+id/nev_settings"

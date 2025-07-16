@@ -52,16 +52,4 @@ class NotificationController  {
         val call: Call<PagedList<Notification>> = genericService.getNotifications(size, page)
         call.enqueue(getResponseCallback(objectsCallback))
     }
-
-    /*fun getSmsMessage(msgID: String, objectsCallback: GenericCallback<SmsMessage>){
-        val call: Call<SmsMessage> = genericService.getSmsMessage(msgID)
-        call.enqueue(getResponseCallback(objectsCallback))
-    }
-
-
-
-    fun getSmsMessagesByNumber(number: String, size: Int = 15, page: Int = 1, objectsCallback: GenericCallback<PagedList<SmsMessage>>){
-        val call: Call<PagedList<SmsMessage>> = genericService.getSmsMessagesByNumber(number, size, page)
-        call.enqueue(getResponseCallback(objectsCallback))
-    }*/
 }

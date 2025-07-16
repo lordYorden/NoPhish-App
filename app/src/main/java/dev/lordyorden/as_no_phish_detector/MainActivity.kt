@@ -11,11 +11,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import dev.lordyorden.as_no_phish_detector.adapters.NotificationAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.ActivityMainBinding
 import dev.lordyorden.as_no_phish_detector.models.Notification
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.notifications.NotificationViewModel
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 class MainActivity : AppCompatActivity() {
@@ -80,6 +80,7 @@ class MainActivity : AppCompatActivity() {
         startForegroundService(intent)
     }
 
+    @Deprecated("not is use")
     private fun removeNotification(notif: Notification) {
         val notifIdx = notificationList.indexOfFirst { n -> (n.id == notif.id) }
         if(notifIdx != -1) {
@@ -88,6 +89,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("not in use")
     private fun addNotification(notif: Notification) {
         val notifIdx = notificationList.size
         notificationList.add(notif)

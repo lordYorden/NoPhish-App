@@ -53,7 +53,7 @@ class SmsController  {
         call.enqueue(getResponseCallback(objectsCallback))
     }
 
-    fun getSmsMessages(size: Int = 15, page: Int = 1, objectsCallback: GenericCallback<PagedList<SmsMessage>>){
+    fun getSmsMessages(objectsCallback: GenericCallback<PagedList<SmsMessage>>, size: Int = 15, page: Int = 1, ){
         val call: Call<PagedList<SmsMessage>> = genericService.getSmsMessages(size, page)
         call.enqueue(getResponseCallback(objectsCallback))
     }

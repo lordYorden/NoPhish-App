@@ -19,9 +19,6 @@ class NotificationViewModel : ViewModel() {
     val removeNotif: LiveData<List<Notification>?> = _toRemove
 
     private val controller = NotificationController()
-    //val SEARCH_TYPE = "user_details"
-
-    //private var nurseObject: ObjectBoundary? = null
 
     lateinit var lifecycle: LifecycleCoroutineScope
 
@@ -33,12 +30,6 @@ class NotificationViewModel : ViewModel() {
     fun setRemove(removedNotif: List<Notification>) {
         _toRemove.postValue(removedNotif)
     }
-
-//    fun setNurse(email: String){
-//        findObjectByEmail(email) { obj ->
-//            nurseObject = obj
-//        }
-//    }
 
     fun checkNewNotifications(existing: List<Notification>) {
         //nurseObject ?: return

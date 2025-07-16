@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import dev.lordyorden.as_no_phish_detector.NotificationAdapter
+import dev.lordyorden.as_no_phish_detector.adapters.NotificationAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentNotificationsBinding
 import dev.lordyorden.as_no_phish_detector.models.Notification
 
@@ -24,19 +24,11 @@ class NotificationsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-//        val notificationsViewModel =
-//            ViewModelProvider(this)[NotificationsViewModel::class.java]
-
         binding = FragmentNotificationsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         notificationViewModel.lifecycle = lifecycleScope
         initViews()
-
-//        val textView: TextView = binding.textNotifications
-//        notificationsViewModel.text.observe(viewLifecycleOwner) {
-//            textView.text = it
-//        }
         return root
     }
 

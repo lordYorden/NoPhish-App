@@ -12,4 +12,5 @@
     <string name="read_sms_messages">Read SMS Messages</string>
     <string name="read_notifications">Read Notifications</string>
     <string name="fetch">fetch notifications</string>
+    <string name="fetch_sms">fetch sms messages</string>
 </resources>
