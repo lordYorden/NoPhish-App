@@ -3,7 +3,6 @@ package dev.lordyorden.as_no_phish_detector.ui.settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import dev.lordyorden.as_no_phish_detector.models.Notification
 
 class PermsViewModel : ViewModel() {
 

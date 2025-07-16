@@ -1,6 +1,5 @@
 package dev.lordyorden.as_no_phish_detector.ui.settings
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -9,15 +8,12 @@ import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.models.PermissionRequest
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentSettingsBinding
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
-import kotlin.collections.forEach
 
 class SettingsFragment : Fragment() {
 

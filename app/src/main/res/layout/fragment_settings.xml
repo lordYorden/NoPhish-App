@@ -12,7 +12,7 @@
     <com.google.android.material.textview.MaterialTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Permissions"
+        android:text="@string/permissions"
         android:id="@+id/lbl_title"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="40dp"
@@ -39,7 +39,7 @@
             android:id="@+id/post_notif_ms"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Post Notification"
+            android:text="@string/post_notification"
             android:textSize="15sp"
             android:textStyle="bold"/>
 
@@ -47,7 +47,7 @@
             android:id="@+id/sms_ms"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Read SMS Messages"
+            android:text="@string/read_sms_messages"
             android:textSize="15sp"
             android:textStyle="bold"/>
 
@@ -55,7 +55,7 @@
             android:id="@+id/read_notif_ms"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Read Notifications"
+            android:text="@string/read_notifications"
             android:textSize="15sp"
             android:textStyle="bold"/>
 

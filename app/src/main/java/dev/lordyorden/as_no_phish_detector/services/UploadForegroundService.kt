@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -191,9 +190,9 @@ class UploadForegroundService : Service() {
         if (NOTIFICATION_ID != lastShownNotificationId) {
             // Cancel previous notification
             val notificationManager: NotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.cancel(lastShownNotificationId);
+            notificationManager.cancel(lastShownNotificationId)
         }
-        lastShownNotificationId = NOTIFICATION_ID;
+        lastShownNotificationId = NOTIFICATION_ID
     }
 
     private fun getNotificationBuilder(

@@ -7,4 +7,8 @@
     <string name="settings">Settings</string>
     <string name="sms_messages">SMS Messages</string>
     <string name="prems_check">In order to acsess the full feature set of the app we need premissions, the app shows if the premissions are enabled.</string>
+    <string name="permissions">Permissions</string>
+    <string name="post_notification">Post Notification</string>
+    <string name="read_sms_messages">Read SMS Messages</string>
+    <string name="read_notifications">Read Notifications</string>
 </resources>
