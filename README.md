@@ -188,8 +188,6 @@ Your backend server should handle:
 
 - SMS message data with fields: `address`, `body`, `timestamp`
 - Notification data with fields: `title`, `body`, `packageName`, `timestamp`
-- Proper CORS configuration for mobile app requests
-- SSL/TLS encryption for secure data transmission
 
 ## Development Notes
 
@@ -210,7 +208,6 @@ Your backend server should handle:
 
 ### Debug Steps:
 
-1. Check app logs using `adb logcat`
 2. Verify service is running in Settings → Apps → NoPhish → Battery
 3. Test API connectivity manually
 4. Restart the service from app settings
