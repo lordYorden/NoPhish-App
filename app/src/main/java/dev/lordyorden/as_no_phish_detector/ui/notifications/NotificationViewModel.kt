@@ -9,6 +9,8 @@ import dev.lordyorden.as_no_phish_detector.models.Notification
 import dev.lordyorden.as_no_phish_detector.models.PagedList
 import dev.lordyorden.as_no_phish_detector.retrofit.GenericCallback
 import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
+import kotlinx.coroutines.launch
+import retrofit2.Response
 
 class NotificationViewModel : ViewModel() {
 
@@ -32,16 +34,25 @@ class NotificationViewModel : ViewModel() {
     }
 
     fun checkNewNotifications(existing: List<Notification>) {
-        //nurseObject ?: return
 
         val notificationsLeft = existing.toMutableList()
         val addedNotif = mutableListOf<Notification>()
 
-        controller.getNotifications(object : GenericCallback<PagedList<Notification>> {
-            override fun success(data: PagedList<Notification>?) {
-                data?.let { obj->
-                    if(obj.items.isNotEmpty()){
-                        obj.items.forEach { notif ->
+        lifecycle.launch {
+
+            var res: Response<PagedList<Notification>>? = null
+
+            try {
+                res = controller.apiService.getNotifications(15, 1)
+
+            }catch (e: Exception){
+                Log.e("NotificationViewModel", "fetch failed: $e")
+
+            }finally {
+                val data: List<Notification> = res?.body()?.items ?: listOf()
+                data.let { items ->
+                    if (items.isNotEmpty()){
+                        items.forEach { notif ->
                             if(existing.find { n -> n.id == notif.id } == null)
                                 addedNotif.add(notif)
                             else{
@@ -59,13 +70,11 @@ class NotificationViewModel : ViewModel() {
 //                    notificationsLeft.forEach { removedNotif ->
 //                        setRemove(removedNotif)
 //                    }
-
                 }
             }
 
-            override fun error(error: String?) {
-                error?.let { err ->  Log.e("Event Manager", err)}
-            }
-        }, 50, 1)
+
+
+        }
     }
 }

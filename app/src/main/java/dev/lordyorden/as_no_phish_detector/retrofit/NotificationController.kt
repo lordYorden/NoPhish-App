@@ -17,39 +17,39 @@ class NotificationController  {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    private val genericService: NotificationRestApi =
+    val apiService: NotificationRestApi =
         retrofit.create(NotificationRestApi::class.java)
 
-    private fun <T> getResponseCallback(genericCallback: GenericCallback<T>): Callback<T> {
-        return object : Callback<T> {
-            override fun onResponse(call: Call<T>, response: Response<T>) {
-                if (response.isSuccessful) {
-                    try {
-                        //val data = response.body()!!.string()
-                        val res = response.body()
-                        genericCallback.success(res)
-                    } catch (e: IOException) {
-                        genericCallback.error(response.errorBody()?.string())
-                        throw RuntimeException(e)
-                    }
-                } else {
-                    genericCallback.error(response.errorBody()?.string())
-                }
-            }
-
-            override fun onFailure(call: Call<T>, throwable: Throwable) {
-                genericCallback.error(throwable.message)
-            }
-        }
-    }
-
-    fun uploadNotification(notif: CreateNotification, objectsCallback: GenericCallback<Notification>){
-        val call: Call<Notification> = genericService.uploadNotification(notif)
-        call.enqueue(getResponseCallback(objectsCallback))
-    }
-
-    fun getNotifications(objectsCallback: GenericCallback<PagedList<Notification>>, size: Int = 15, page: Int = 1){
-        val call: Call<PagedList<Notification>> = genericService.getNotifications(size, page)
-        call.enqueue(getResponseCallback(objectsCallback))
-    }
+//    private fun <T> getResponseCallback(genericCallback: GenericCallback<T>): Callback<T> {
+//        return object : Callback<T> {
+//            override fun onResponse(call: Call<T>, response: Response<T>) {
+//                if (response.isSuccessful) {
+//                    try {
+//                        //val data = response.body()!!.string()
+//                        val res = response.body()
+//                        genericCallback.success(res)
+//                    } catch (e: IOException) {
+//                        genericCallback.error(response.errorBody()?.string())
+//                        throw RuntimeException(e)
+//                    }
+//                } else {
+//                    genericCallback.error(response.errorBody()?.string())
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<T>, throwable: Throwable) {
+//                genericCallback.error(throwable.message)
+//            }
+//        }
+//    }
+//
+//    fun uploadNotification(notif: CreateNotification, objectsCallback: GenericCallback<Notification>){
+//        val call: Call<Notification> = genericService.uploadNotification(notif)
+//        call.enqueue(getResponseCallback(objectsCallback))
+//    }
+//
+//    fun getNotifications(objectsCallback: GenericCallback<PagedList<Notification>>, size: Int = 15, page: Int = 1){
+//        val call: Call<PagedList<Notification>> = genericService.getNotifications(size, page)
+//        call.enqueue(getResponseCallback(objectsCallback))
+//    }
 }

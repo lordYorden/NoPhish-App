@@ -208,6 +208,6 @@ Your backend server should handle:
 
 ### Debug Steps:
 
-2. Verify service is running in Settings → Apps → NoPhish → Battery
-3. Test API connectivity manually
-4. Restart the service from app settings
+1. Verify service is running in Settings → Apps → NoPhish → Battery
+2. Test API connectivity manually
+3. Restart the service from app settings

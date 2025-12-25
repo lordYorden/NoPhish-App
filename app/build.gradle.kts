@@ -30,9 +30,16 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
+
+//    kotlinOptions {
+//        jvmTarget = "11"
+//    }
     buildFeatures{
         viewBinding=true
     }
@@ -56,5 +63,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.easypermissions.ktx)
+    //runtimeOnly(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.lifecycle.service)
 
 }

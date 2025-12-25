@@ -4,6 +4,7 @@ import dev.lordyorden.as_no_phish_detector.models.CreateNotification
 import dev.lordyorden.as_no_phish_detector.models.Notification
 import dev.lordyorden.as_no_phish_detector.models.PagedList
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -14,10 +15,10 @@ interface NotificationRestApi {
     fun uploadSms(@Body sms: CreateSmsMessage): Call<SmsMessage>*/
 
     @POST("/notifications")
-    fun uploadNotification(@Body sms: CreateNotification): Call<Notification>
+    suspend fun uploadNotification(@Body notif: CreateNotification): Response<Notification>
 
     @GET("/notifications")
-    fun getNotifications(@Query("size") size: Int = 15, @Query("page") page: Int = 1): Call<PagedList<Notification>>
+    suspend fun getNotifications(@Query("size") size: Int = 15, @Query("page") page: Int = 1): Response<PagedList<Notification>>
 
     /*@GET("/messages/byNumber/{phoneNumber}")
     fun getSmsMessagesByNumber(@Path("phoneNumber") number: String,
