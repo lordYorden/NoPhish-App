@@ -1,16 +1,13 @@
 package dev.lordyorden.as_no_phish_detector.services
 
-import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.os.PowerManager
 import android.os.PowerManager.WakeLock
 import android.util.Log
@@ -22,13 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import dev.lordyorden.as_no_phish_detector.MainActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.models.CreateNotification
-import dev.lordyorden.as_no_phish_detector.models.CreateSmsMessage
-import dev.lordyorden.as_no_phish_detector.models.Notification
-import dev.lordyorden.as_no_phish_detector.models.SmsMessage
-import dev.lordyorden.as_no_phish_detector.retrofit.GenericCallback
 import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
 import dev.lordyorden.as_no_phish_detector.retrofit.SmsController
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 
@@ -45,12 +37,11 @@ class UploadForegroundService : LifecycleService() {
         super.onCreate()
         Log.i(TAG, "onCreate: created()")
 
-/*        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("SMS Receiver")
-            .setContentText("SMS Receiver is running")
-            .setSmallIcon(R.drawable.ic_fish)
-            .build()
-        startForeground(NOTIFICATION_ID, notification)*/
+        lifecycleScope.launch {
+            MessageBridge.messageFlow.collect { bundle ->
+                handleNewMessage(bundle)
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -60,40 +51,42 @@ class UploadForegroundService : LifecycleService() {
 
         val action = intent?.action
 
-        if (action.equals(ACTION_START)) {
+        if (action == ACTION_START) {
 
-            intent?.extras?.let { msg ->
+            /*intent.extras?.let { msg ->
                 handleNewMessage(msg)
+                // Clear the extras or the action so it's not processed again
+                intent.replaceExtras(Bundle())
+                intent.action = "ALREADY_PROCESSED"
+            }*/
+
+            if (!isServiceRunningRightNow) {
+                isServiceRunningRightNow = true
+                notifyToUserForForegroundService()
             }
 
-            if (isServiceRunningRightNow) {
-                return START_STICKY
-            }
-
-            isServiceRunningRightNow = true
-            notifyToUserForForegroundService()
-
-        } else if (action.equals(ACTION_STOP)) {
+        } else if (action == ACTION_STOP) {
             stopHandlingMassages()
             isServiceRunningRightNow = false
+            stopSelf()
         }
 
         return START_STICKY
     }
 
-    private fun handleNewMessage(message: Bundle){
-        Log.d(TAG, "startRecording() + " + Thread.currentThread().name)
+    private suspend fun handleNewMessage(message: Bundle){
+        //Log.d(TAG, "startRecording() + " + Thread.currentThread().name)
 
         val isSMS = message.getBoolean("isSMS", true)
 
-        if(isSMS){
+/*        if(isSMS){
             val number = message.getString("address", "none")
             val body = message.getString("body", "none")
             val timestamp = message.getLong("timestamp", 0L)
 
             Log.i(TAG, "$timestamp new message from $number: $body")
 
-/*            smsController.uploadSms(CreateSmsMessage(number, body, timestamp), object : GenericCallback<SmsMessage>{
+            smsController.uploadSms(CreateSmsMessage(number, body, timestamp), object : GenericCallback<SmsMessage>{
                 override fun success(data: SmsMessage?) {
                     Log.i(TAG, "uploaded sms message $data")
                 }
@@ -101,49 +94,43 @@ class UploadForegroundService : LifecycleService() {
                 override fun error(error: String?) {
                     Log.e(TAG, "upload failed: $error")
                 }
-            })*/
-        }else{
+            })
+        }else{*/
+        if(!isSMS){
 
             val title = message.getString("title", "none")
+            val extraTitle = message.getString("extraTitle", "none")
+            val isGroup = message.getBoolean("isGroup", false)
             val body = message.getString("body", "none")
             val packageName = message.getString("packageName", "none")
             val timestamp = message.getLong("timestamp", 0L)
 
-            Log.i(TAG, "$timestamp new notification, title: $title: $body")
-
             val notif = CreateNotification(
                 title,
+                extraTitle,
+                isGroup,
                 body,
                 packageName,
                 timestamp)
 
-            lifecycleScope.launch {
-                try {
-                    notificationController.apiService.uploadNotification(notif)
+            try {
+                notificationController.apiService.uploadNotification(notif)
 
-                    Log.i(TAG, "uploaded notification $notif")
-                } catch (e: Exception) {
-                    Log.e(TAG, "upload failed: $e")
-                }
+                Log.i(TAG, "uploaded notification $notif")
+            } catch (e: Exception) {
+                Log.e(TAG, "upload failed: $e")
             }
         }
-
-
-        /*smsController.uploadSms(CreateSmsMessage(number, body, timestamp), object : GenericCallback<SmsMessage>{
-            override fun success(data: SmsMessage?) {
-                Log.i(TAG, "uploaded sms message $data")
-            }
-
-            override fun error(error: String?) {
-                Log.e(TAG, "upload failed: $error")
-            }
-        })*/
 
 
 /*        // Keep CPU working
         val powerManager: PowerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NoPhishDetector:tag");
-        wakeLock.acquire(10*60*1000L *//*10 minutes*//*)*/
+        wakeLock.acquire(10*60*1000L)s*/
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 
     private fun stopHandlingMassages(){
@@ -242,17 +229,17 @@ class UploadForegroundService : LifecycleService() {
         }
     }
 
-//    override fun onBind(p0: Intent?): IBinder? {
-//        Log.i(TAG, "onBind: called!")
-//        return null
-//    }
+/*    override fun onBind(p0: Intent?): IBinder? {
+        Log.i(TAG, "onBind: called!")
+        return null
+    }
 
-/*    override fun stopService(name: Intent?): Boolean {
+    override fun stopService(name: Intent?): Boolean {
         Log.i(TAG, "stopService: stopping.........")
         return super.stopService(name)
-    }*/
+    }
 
-/*    fun isMyServiceRunning(context: Context): Boolean {
+    fun isMyServiceRunning(context: Context): Boolean {
         val manager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
         //val runs = manager.getRunningServices(Int.MAX_VALUE)
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
@@ -264,7 +251,7 @@ class UploadForegroundService : LifecycleService() {
     }*/
 
     companion object {
-        private const val TAG = "SmsForegroundService"
+        private const val TAG = "UploadForegroundService"
         const val CHANNEL_ID = "dev.lordyorden.as_no_phish_detector.CHANNEL_ID_FOREGROUND"
         const val NOTIFICATION_ID = 127
         const val MAIN_ACTION: String = "dev.lordyorden.as_no_phish_detector.Services.SmsForegroundService.action.main"

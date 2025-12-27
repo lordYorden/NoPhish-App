@@ -8,6 +8,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.os.bundleOf
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class NotificationReceiverService : NotificationListenerService() {
@@ -25,46 +26,67 @@ class NotificationReceiverService : NotificationListenerService() {
         }
 
         sbn.notification?.extras?.let { meta ->
-            val title = meta.getCharSequence(Notification.EXTRA_TITLE, "none")
+
+            val notifData = mapOf(
+                "title" to meta.getCharSequence(Notification.EXTRA_TITLE, "none").toString(),
+                "body" to meta.getCharSequence(Notification.EXTRA_TEXT, "none").toString(),
+                "extraTitle" to meta.getString(Notification.EXTRA_CONVERSATION_TITLE, "none"),
+                "isGroup" to meta.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false),
+                "bigText" to meta.getCharSequence(Notification.EXTRA_BIG_TEXT, "none").toString(),
+                "timestamp" to sbn.postTime,
+                "packageName" to sbn.packageName
+            )
+
+/*            val title = meta.getCharSequence(Notification.EXTRA_TITLE, "none")
             val body = meta.getCharSequence(Notification.EXTRA_TEXT, "none")
-            val flags = getNotificationSetFlags(sbn.notification.flags)
+
+            val extraTitle = meta.getString(Notification.EXTRA_CONVERSATION_TITLE, "none")
+            val isGroup =  meta.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false)
 
             val titleStr = title?.toString() ?: "none"
             val bigText: CharSequence = meta.getCharSequence(Notification.EXTRA_BIG_TEXT, "none")
-            /*val subText: String = meta.getString(Notification.EXTRA_SUB_TEXT, "none")
-            val infoText: String = meta.getString(Notification.EXTRA_INFO_TEXT, "none")*/
-            val timestamp = sbn.postTime
+            val subText: String = meta.getString(Notification.EXTRA_SUB_TEXT, "none")
+            val infoText: String = meta.getString(Notification.EXTRA_INFO_TEXT, "none")
+            val timestamp = sbn.postTime*/
+
+            val flags = getNotificationSetFlags(sbn.notification.flags)
+
+
             Log.i("NotificationReceiverService", buildString {
-                append("title: ")
-                append(titleStr)
-                append(" content: ")
-                append(body)
-                append(" bigText: ")
-                append(bigText)
-                append(" timestamp: ")
-                append(timestamp)
-                append(" flagID: ")
-                append(sbn.notification.flags)
-                append(" flags: ")
+
+                notifData.map { item ->
+                    append(item.key)
+                    append(": ")
+                    append(item.value)
+                    append(", ")
+                }
+
+                append("flags: ")
                 append(flags)
-                append(" package: ")
-                append(packageName)
+                append(", ")
             })
 
-            if (flags.contains("FLAG_ONGOING_EVENT") || flags.contains("FLAG_FOREGROUND_SERVICE") || flags.contains("FLAG_GROUP_SUMMARY") || flags.contains("FLAG_NO_CLEAR")){
+            if (flags.contains("FLAG_ONGOING_EVENT")
+                || flags.contains("FLAG_FOREGROUND_SERVICE")
+                || flags.contains("FLAG_GROUP_SUMMARY")
+                || flags.contains("FLAG_NO_CLEAR")
+                || flags.contains("FLAG_INSISTENT")){
+                Log.e("NotificationReceiverService","rejected notif:  ${notifData["timestamp"]}")
                 return
             }
 
-            val serviceIntent = Intent(this, UploadForegroundService::class.java)
-            serviceIntent.let {
-                it.putExtra("title", titleStr)
-                it.putExtra("body", body)
-                it.putExtra("timestamp", timestamp)
-                it.putExtra("isSMS", false)
-                it.putExtra("packageName", packageName)
-                it.action = UploadForegroundService.ACTION_START
+            Log.e("NotificationReceiverService","accepted notif:  ${notifData["timestamp"]}")
+
+
+            val serviceIntent = Intent(this, UploadForegroundService::class.java).apply {
+                action = UploadForegroundService.ACTION_START
             }
+
             startForegroundService(serviceIntent)
+
+            val notifBundle = bundleOf(*notifData.map { it.key to it.value }.toTypedArray())
+            notifBundle.putBoolean("isSMS", false)
+            MessageBridge.sendMessage(notifBundle)
         }
 
     }
@@ -82,12 +104,8 @@ class NotificationReceiverService : NotificationListenerService() {
         Notification.FLAG_GROUP_SUMMARY to "FLAG_GROUP_SUMMARY",
         Notification.FLAG_LOCAL_ONLY to "FLAG_LOCAL_ONLY",
         Notification.FLAG_BUBBLE to "FLAG_BUBBLE",
-        Notification.FLAG_SHOW_LIGHTS to "FLAG_SHOW_LIGHTS",
-        Notification.FLAG_HIGH_PRIORITY to "FLAG_HIGH_PRIORITY",
         Notification.FLAG_ONLY_ALERT_ONCE to "FLAG_ONLY_ALERT_ONCE"
         // Add more Notification.FLAG_ constants as needed:
-        // Notification.FLAG_ONLY_ALERT_ONCE to "FLAG_ONLY_ALERT_ONCE",
-        // Notification.FLAG_HIGH_PRIORITY to "FLAG_HIGH_PRIORITY", // Deprecated in API 26+
         // Notification.FLAG_SHOW_LIGHTS to "FLAG_SHOW_LIGHTS",
         // Notification.FLAG_VIBRATE to "FLAG_VIBRATE",
         // Notification.FLAG_SOUND to "FLAG_SOUND"
