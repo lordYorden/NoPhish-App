@@ -18,10 +18,11 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import dev.lordyorden.as_no_phish_detector.MainActivity
 import dev.lordyorden.as_no_phish_detector.R
-import dev.lordyorden.as_no_phish_detector.models.CreateNotification
+import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
 import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
 import dev.lordyorden.as_no_phish_detector.retrofit.SmsController
 import kotlinx.coroutines.launch
+import java.security.MessageDigest
 
 
 class UploadForegroundService : LifecycleService() {
@@ -47,18 +48,10 @@ class UploadForegroundService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.i(TAG, "onStartCommand: Intent Data: ${intent?.action}")
-        //makeApiCall()
 
         val action = intent?.action
 
         if (action == ACTION_START) {
-
-            /*intent.extras?.let { msg ->
-                handleNewMessage(msg)
-                // Clear the extras or the action so it's not processed again
-                intent.replaceExtras(Bundle())
-                intent.action = "ALREADY_PROCESSED"
-            }*/
 
             if (!isServiceRunningRightNow) {
                 isServiceRunningRightNow = true
@@ -104,19 +97,32 @@ class UploadForegroundService : LifecycleService() {
             val body = message.getString("body", "none")
             val packageName = message.getString("packageName", "none")
             val timestamp = message.getLong("timestamp", 0L)
+            val urls = message.getStringArrayList("urls")?.toList() ?: listOf<String>()
 
-            val notif = CreateNotification(
+/*            val notif = CreateNotification(
                 title,
                 extraTitle,
                 isGroup,
                 body,
                 packageName,
-                timestamp)
+                timestamp)*/
+
+            val hash = buildString {
+                append(body)
+                append(packageName) }.toSha256()
+
+            val rel = RelentNotificationInfo(
+                body,
+                packageName,
+                hash,
+                urls
+            )
 
             try {
-                notificationController.apiService.uploadNotification(notif)
+                //notificationController.apiService.uploadNotification(notif)
+                notificationController.apiService.uploadRelInfo(rel)
 
-                Log.i(TAG, "uploaded notification $notif")
+                Log.i(TAG, "uploaded notification $rel")
             } catch (e: Exception) {
                 Log.e(TAG, "upload failed: $e")
             }
@@ -127,6 +133,15 @@ class UploadForegroundService : LifecycleService() {
         val powerManager: PowerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NoPhishDetector:tag");
         wakeLock.acquire(10*60*1000L)s*/
+    }
+
+    private fun String.toSha256(): String {
+        val bytes = this.toByteArray()
+        val md = MessageDigest.getInstance("SHA-256")
+        val digest = md.digest(bytes)
+
+        // Convert bytes to a hex string
+        return digest.joinToString("") { "%02x".format(it) }
     }
 
     override fun onDestroy() {

@@ -3,6 +3,7 @@ package dev.lordyorden.as_no_phish_detector.retrofit
 import dev.lordyorden.as_no_phish_detector.models.CreateNotification
 import dev.lordyorden.as_no_phish_detector.models.Notification
 import dev.lordyorden.as_no_phish_detector.models.PagedList
+import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -13,6 +14,9 @@ interface NotificationRestApi {
 
     @POST("/notifications")
     suspend fun uploadNotification(@Body notif: CreateNotification): Response<Notification>
+
+    @POST("/notifications/rel")
+    suspend fun uploadRelInfo(@Body notif: RelentNotificationInfo): Response<RelentNotificationInfo>
 
     @GET("/notifications")
     suspend fun getNotifications(@Query("size") size: Int = 15, @Query("page") page: Int = 1): Response<PagedList<Notification>>

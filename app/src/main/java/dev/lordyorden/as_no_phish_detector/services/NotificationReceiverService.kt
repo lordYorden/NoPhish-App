@@ -7,8 +7,10 @@ import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.util.Patterns
 import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
+import java.util.ArrayList
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class NotificationReceiverService : NotificationListenerService() {
@@ -36,18 +38,6 @@ class NotificationReceiverService : NotificationListenerService() {
                 "timestamp" to sbn.postTime,
                 "packageName" to sbn.packageName
             )
-
-/*            val title = meta.getCharSequence(Notification.EXTRA_TITLE, "none")
-            val body = meta.getCharSequence(Notification.EXTRA_TEXT, "none")
-
-            val extraTitle = meta.getString(Notification.EXTRA_CONVERSATION_TITLE, "none")
-            val isGroup =  meta.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false)
-
-            val titleStr = title?.toString() ?: "none"
-            val bigText: CharSequence = meta.getCharSequence(Notification.EXTRA_BIG_TEXT, "none")
-            val subText: String = meta.getString(Notification.EXTRA_SUB_TEXT, "none")
-            val infoText: String = meta.getString(Notification.EXTRA_INFO_TEXT, "none")
-            val timestamp = sbn.postTime*/
 
             val flags = getNotificationSetFlags(sbn.notification.flags)
 
@@ -84,11 +74,26 @@ class NotificationReceiverService : NotificationListenerService() {
 
             startForegroundService(serviceIntent)
 
+            val body = notifData["body"] as String
+            val urls = extractUrlsFromBody(body)
+
             val notifBundle = bundleOf(*notifData.map { it.key to it.value }.toTypedArray())
             notifBundle.putBoolean("isSMS", false)
+            notifBundle.putStringArrayList("urls", ArrayList(urls))
             MessageBridge.sendMessage(notifBundle)
         }
 
+    }
+
+    private fun extractUrlsFromBody(body: String): List<String> {
+        val urls = mutableListOf<String>()
+
+        val matcher = Patterns.WEB_URL.matcher(body)
+        while (matcher.find()) {
+            urls.add(matcher.group())
+        }
+
+        return urls.toList()
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
