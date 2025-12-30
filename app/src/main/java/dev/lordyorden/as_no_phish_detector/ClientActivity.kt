@@ -3,6 +3,7 @@ package dev.lordyorden.as_no_phish_detector
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.messaging.FirebaseMessaging
 import com.vmadalin.easypermissions.EasyPermissions
 import dev.lordyorden.as_no_phish_detector.databinding.ActivityClientBinding
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
@@ -45,6 +47,15 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         //setupActionBarWithNavController(navController, appBarConfiguration)
 
         navView.setupWithNavController(navController)
+
+        FirebaseMessaging.getInstance().subscribeToTopic("test_topic")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("FCM", "Successfully subscribed to topic!")
+                } else {
+                    Log.e("FCM", "Subscription failed")
+                }
+            }
     }
 
 

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -65,5 +66,13 @@ dependencies {
     implementation(libs.easypermissions.ktx)
     //runtimeOnly(libs.androidx.lifecycle.service)
     implementation(libs.androidx.lifecycle.service)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
+    // https://mvnrepository.com/artifact/com.google.firebase/firebase-messaging
+    implementation(libs.firebase.messaging)
+
+
 
 }

@@ -269,7 +269,7 @@ class UploadForegroundService : LifecycleService() {
         private const val TAG = "UploadForegroundService"
         const val CHANNEL_ID = "dev.lordyorden.as_no_phish_detector.CHANNEL_ID_FOREGROUND"
         const val NOTIFICATION_ID = 127
-        const val MAIN_ACTION: String = "dev.lordyorden.as_no_phish_detector.Services.SmsForegroundService.action.main"
+        const val MAIN_ACTION: String = "dev.lordyorden.as_no_phish_detector.Services.UploadForegroundService.action.main"
         const val ACTION_START: String = "ACTION_START"
         const val ACTION_STOP: String = "ACTION_STOP"
     }
