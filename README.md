@@ -1,4 +1,4 @@
-# NoPhish App - SMS & Notification Phishing Detection
+# NoPhish App - SMS & Notification Phishing Detection (outdated)
 
 ![NoPhish App Logo](./docs/ic_nophish.png)
 
