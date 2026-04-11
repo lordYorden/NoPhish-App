@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/onboarding_nav"
+    app:startDestination="@id/welcomeFragment">
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.WelcomeFragment"
+        android:label="WelcomeFragment"
+        tools:layout="@layout/fragment_welcome">
+        <action
+            android:id="@+id/action_welcomeFragment_to_joinCircleFragment"
+            app:destination="@id/joinCircleFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/joinCircleFragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.JoinCircleFragment"
+        android:label="JoinCircleFragment"
+        tools:layout="@layout/fragment_join_circle">
+        <action
+            android:id="@+id/action_joinCircleFragment_to_profileDetailsFragment"
+            app:destination="@id/profileDetailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/profileDetailsFragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.ProfileDetailsFragment"
+        android:label="ProfileDetailsFragment"
+        tools:layout="@layout/fragment_profile_details"/>
+</navigation>

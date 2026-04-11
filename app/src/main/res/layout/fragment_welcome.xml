@@ -1,0 +1,187 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:ems="8"
+            android:text="@string/keep_you_safe"
+            android:textColor="@color/primary"
+            android:textSize="42sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:ems="13"
+            android:text="@string/protect_your_loved_ones"
+
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title" />
+
+        <!-- Set Up Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_setup"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="40dp"
+            app:icon="@drawable/ic_add_moderator"
+            android:backgroundTint="@color/primary"
+            android:layout_marginHorizontal="24dp"
+            app:iconGravity="textStart"
+            android:text="@string/my_circle"
+            android:textColor="@color/on_primary"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/subtitle" />
+
+        <!-- Join Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_join"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/secondary_container"
+            app:icon="@drawable/ic_group_add"
+            android:layout_marginHorizontal="24dp"
+            app:iconGravity="textStart"
+            android:text="@string/join_a_circle"
+            app:iconTint="@color/primary"
+            android:textColor="@color/primary"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/btn_setup" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/link_privacy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/protect_your_privacy"
+            android:textColor="@color/primary"
+            android:background="?android:attr/selectableItemBackground"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_join" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="@color/primary"
+            app:layout_constraintStart_toStartOf="@id/link_privacy"
+            app:layout_constraintEnd_toEndOf="@id/link_privacy"
+            app:layout_constraintTop_toBottomOf="@id/link_privacy" />
+
+        <!-- Privacy Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPrivacy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/surface"
+            app:cardCornerRadius="30dp"
+            android:layout_marginTop="40dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/cardAlerts"
+            app:layout_constraintTop_toBottomOf="@id/link_privacy">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="10dp"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_shield_check"
+                    app:tint="@color/primary" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/privacy_first"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:ems="8"
+                    android:gravity="center"
+                    android:text="@string/industry_leading_encryption" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Alerts Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAlerts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/surface"
+            app:cardCornerRadius="30dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginStart="2dp"
+            app:layout_constraintStart_toEndOf="@id/cardPrivacy"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/link_privacy"
+            app:cardElevation="0dp">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:visibility="visible"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_notif_fill"
+                    app:tint="@color/primary" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/instant_alerts"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:ems="8"
+                    android:gravity="center"
+                    android:text="@string/real_time_status_checks" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

@@ -1,9 +1,41 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.ASNOPHISHDetector" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorSecondaryContainer">#2D5244</item>
+        <!-- The color of the icon/text inside the pill -->
+        <item name="colorOnSecondaryContainer">#FFFFFF</item>
+        <!-- The background color of the bar itself -->
+        <item name="colorSurface">#FFFFFF</item>
     </style>
 
     <style name="Theme.ASNOPHISHDetector" parent="Base.Theme.ASNOPHISHDetector" />
+
+
+    <style name="Theme.HeritageHearth" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Main Brand Colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
+
+        <item name="android:textColor">@color/on_background</item>
+        <item name="android:textColorSecondary">@color/on_background</item>
+        <item name="android:textColorPrimary">@color/on_background</item>
+
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="colorSecondaryContainer">@color/primary</item>
+        <item name="colorOnSecondaryContainer">@color/nav_item_color_state</item>
+
+        <item name="colorTertiary">@color/tertiary</item>
+        <item name="colorOnTertiary">@color/on_tertiary</item>
+
+        <!-- Background and Surface -->
+        <item name="android:windowBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/primary</item>
+        <item name="colorOnSurfaceVariant">@color/surface_text</item>
+        <item name="colorOutline">@color/outline</item>
+    </style>
+
 </resources>

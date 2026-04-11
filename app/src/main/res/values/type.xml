@@ -1,0 +1,11 @@
+<resources>
+    <style name="TextAppearance.HeritageHearth.Headline" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">@font/noto_serif</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="TextAppearance.HeritageHearth.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:fontFamily">@font/plus_jakarta_sans</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>

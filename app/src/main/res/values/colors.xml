@@ -2,4 +2,31 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Primary - Forest Green (#2E5C4E) -->
+    <color name="primary">#2E5C4E</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#D1E8E0</color>
+    <color name="on_primary_container">#002118</color>
+
+    <!-- Secondary - Sage Green (#8CB38F) -->
+    <color name="secondary">#8CB38F</color>
+    <color name="on_secondary">#003923</color>
+    <color name="secondary_variant">#ebf4e5</color>
+    <color name="secondary_container">#c1eac3</color>
+    <color name="on_secondary_container">#002112</color>
+
+    <!-- Tertiary - Terracotta/Dusty Rose (#E5A99B) -->
+    <color name="tertiary">#E5A99B</color>
+    <color name="on_tertiary">#4B1D14</color>
+    <color name="tertiary_container">#FFDAD3</color>
+    <color name="on_tertiary_container">#3A0A03</color>
+
+    <!-- Neutral - Charcoal (#3D3B38) -->
+    <color name="background">#F8F5F2</color> <!-- The light beige in your background -->
+    <color name="on_background">#1C1B1A</color>
+    <color name="surface">#F5F0EB</color> <!-- Slightly darker beige for cards -->
+    <color name="surface_text">#AFAAA6</color> <!-- Slightly darker beige for cards -->
+    <color name="on_surface">#3D3B38</color>
+    <color name="outline">#85736E</color>
 </resources>

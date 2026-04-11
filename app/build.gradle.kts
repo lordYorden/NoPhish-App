@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "dev.lordyorden.as_no_phish_detector"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "dev.lordyorden.as_no_phish_detector"
@@ -72,6 +72,10 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.google.firebase/firebase-messaging
     implementation(libs.firebase.messaging)
+
+    implementation(libs.kotlin.onetimepassword)
+
+    implementation(libs.otpinput)
 
 
 

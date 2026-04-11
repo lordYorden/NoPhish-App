@@ -3,18 +3,29 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nev_sms">
+    app:startDestination="@+id/nev_circle">
 
     <fragment
-        android:id="@+id/nev_sms"
-        android:name="dev.lordyorden.as_no_phish_detector.ui.sms.SmsFragment"
+        android:id="@+id/nev_circle"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.CircleFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_sms" />
+        tools:layout="@layout/fragment_circle" >
+        <action
+            android:id="@+id/action_nev_circle_to_invite_fragment"
+            app:destination="@id/invite_fragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/invite_fragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.InviteToCircleFragment"
+        android:label="invite"
+        tools:layout="@layout/fragment_invite_to_circle"/>
 
     <fragment
         android:id="@+id/nev_settings"
         android:name="dev.lordyorden.as_no_phish_detector.ui.settings.SettingsFragment"
-        android:label="@string/title_dashboard"
+        android:label="@string/settings"
         tools:layout="@layout/fragment_settings">
         <action
             android:id="@+id/settings_to_notif"
@@ -25,7 +36,7 @@
 
     <fragment
         android:id="@+id/nev_notification"
-        android:name="dev.lordyorden.as_no_phish_detector.ui.notifications.NotificationsFragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.JoinCircleFragment"
         android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_join_circle" />
 </navigation>

@@ -11,11 +11,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
 import com.vmadalin.easypermissions.EasyPermissions
 import dev.lordyorden.as_no_phish_detector.databinding.ActivityClientBinding
+import dev.lordyorden.as_no_phish_detector.databinding.AttackDetailsBottomSheetBinding
+import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
+import dev.lordyorden.tradely.utilities.ImageLoader
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, EasyPermissions.PermissionCallbacks {
@@ -31,6 +35,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
 
         //startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
         initViews()
+        handleIntent(intent)
     }
 
     private fun initViews() {
@@ -105,5 +110,48 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         Toast.makeText(this, "rel denied $requestCode", Toast.LENGTH_SHORT).show()
         //permsViewModel.setRejected(requestCode)
     }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
 
+    private fun handleIntent(intent: Intent) {
+        Log.e("intent client", "checking action")
+
+        when(intent.action) {
+            FCMService.SHOW_DETAILS_ACTION -> {
+                intent.extras?.let {
+                    showDetailsBottomSheet(it)
+                }
+
+            }
+        }
+    }
+
+    private fun showDetailsBottomSheet(extras: Bundle) {
+        val body = extras.getString("body", "Body is empty")
+        val packageName = extras.getString("packageName", "none")
+        val urls = extras.getStringArrayList("urls")?.toList()
+        val sheet = BottomSheetDialog(this)
+        val sheetView = AttackDetailsBottomSheetBinding.inflate(layoutInflater)
+        sheet.behavior.peekHeight = 1000
+
+        ImageLoader.getInstance().loadAppIcon(packageName, sheetView.ivAppIcon)
+        sheetView.tvBody.text = body
+
+        sheetView.tvAppName.text = packageName
+
+        try {
+            sheetView.tvUrl.text = urls?.first()
+        }
+        catch(e: NoSuchElementException){
+            sheetView.tvUrl.text = "No URL was found"
+        }
+
+        sheet.setCancelable(true)
+        sheet.setContentView(sheetView.root)
+        sheet.show()
+    }
 }
+

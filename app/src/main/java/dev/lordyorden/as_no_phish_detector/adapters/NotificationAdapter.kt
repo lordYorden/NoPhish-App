@@ -30,7 +30,7 @@ class NotificationAdapter(
                 lblTitle.text = title
 
                 if (packageName != null && packageName != "none")
-                    ImageLoader.Companion.getInstance().loadAppIcon(packageName!!,
+                    ImageLoader.getInstance().loadAppIcon(packageName!!,
                         appIcon
                     )
             }
@@ -40,7 +40,7 @@ class NotificationAdapter(
     inner class NotificationViewHolder(val binding: NotificationItemBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                onNotificationClick(getItem(adapterPosition))
+                onNotificationClick(getItem(bindingAdapterPosition))
             }
         }
     }

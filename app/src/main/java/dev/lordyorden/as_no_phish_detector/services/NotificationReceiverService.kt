@@ -23,7 +23,7 @@ class NotificationReceiverService : NotificationListenerService() {
 
         val packageName = sbn.packageName
 
-        if (packageName == "com.android.systemui"){
+        if (packageName == "com.android.systemui" || packageName == "dev.lordyorden.as_no_phish_detector"){
             return
         }
 

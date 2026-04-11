@@ -53,16 +53,43 @@ class NotificationHelper private constructor(context: Context) {
         return builder
     }
 
-    fun buildNotif(title: String, body: String, channelId: String): Notification? {
+    private fun buildNotif(title: String, body: String, channelId: String, ongoing: Boolean, notificationIntent: Intent, context: Context): Notification {
+        val notificationBuilder = getNotificationBuilder(
+            context,
+            channelId
+        )
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            NOTIFICATION_ID,
+            notificationIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        notificationBuilder
+            .setContentIntent(pendingIntent) // Open activity
+            .setOngoing(ongoing)
+            .setSmallIcon(R.drawable.ic_nophish_color)
+            //.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_nophish_color))
+            .setContentTitle(title)
+            .setContentText(body)
+
+        return notificationBuilder.build()
+
+    }
+
+    fun buildNotif(title: String, body: String, channelId: String, intent: Intent?, ongoing: Boolean = false): Notification? {
 
         contextRef.get()?.let { context ->
 
-            val notificationIntent = Intent(
+            val notificationIntent = intent ?: Intent(
                 context,
                 MainActivity::class.java
             )
 
-            val notificationBuilder = getNotificationBuilder(
+            return buildNotif(title, body, channelId, ongoing, notificationIntent, context)
+
+           /* val notificationBuilder = getNotificationBuilder(
                 context,
                 channelId
             )
@@ -82,7 +109,7 @@ class NotificationHelper private constructor(context: Context) {
                 .setContentTitle(title)
                 .setContentText(body)
 
-            return notificationBuilder.build()
+            return notificationBuilder.build()*/
         }
 
         return null

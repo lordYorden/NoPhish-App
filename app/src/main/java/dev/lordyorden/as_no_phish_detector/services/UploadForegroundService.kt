@@ -108,7 +108,8 @@ class UploadForegroundService : LifecycleService() {
                 timestamp)*/
 
             val hash = buildString {
-                append(body)
+                append(body.toSha256())
+                append(timestamp)
                 append(packageName) }.toSha256()
 
             val rel = RelentNotificationInfo(

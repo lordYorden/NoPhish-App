@@ -10,4 +10,11 @@ class Constants {
         const val READ_NOTIFICATION_CODE = 43
         const val READ_SMS_CODE = 44
     }
+
+    object OTP {
+        const val OTP_LENGTH = 6
+        const val OTP_SECRET = "test"
+        const val AUTO_GENERATE_SECRET = true //false for better testing
+        const val TEST_VALUE = "888888"
+    }
 }

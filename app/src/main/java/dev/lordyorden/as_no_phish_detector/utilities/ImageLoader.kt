@@ -32,11 +32,11 @@ class ImageLoader private constructor(context: Context) {
     fun loadAppIcon(
         packageName: String,
         imageView: AppCompatImageView,
-        placeholder: Int = R.drawable.ic_whatsapp
+        placeholder: Int = R.drawable.ic_nophish_color
     ) {
         contextRef.get()?.let { context ->
             try {
-                val icon: Drawable? = context.packageManager.getApplicationIcon(packageName)
+                val icon: Drawable = context.packageManager.getApplicationIcon(packageName)
                 imageView.setImageDrawable(icon)
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
