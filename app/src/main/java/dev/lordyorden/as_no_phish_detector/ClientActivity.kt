@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -16,6 +17,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.vmadalin.easypermissions.EasyPermissions
 import dev.lordyorden.as_no_phish_detector.databinding.ActivityClientBinding
 import dev.lordyorden.as_no_phish_detector.databinding.AttackDetailsBottomSheetBinding
+import dev.lordyorden.as_no_phish_detector.databinding.UrlItemBinding
 import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
@@ -143,10 +145,18 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         sheetView.tvAppName.text = packageName
 
         try {
-            sheetView.tvUrl.text = urls?.first()
+            urls?.forEach { url ->
+                val urlItem = UrlItemBinding.inflate(layoutInflater, sheetView.root, false)
+                urlItem.tvUrl.text = url
+                sheetView.listUrls.addView(urlItem.root)
+            }
+
+            if(urls?.isNotEmpty() == true){
+                sheetView.tvNoUrl.visibility = View.GONE
+            }
         }
         catch(e: NoSuchElementException){
-            sheetView.tvUrl.text = "No URL was found"
+            sheetView.tvNoUrl.visibility = View.VISIBLE
         }
 
         sheet.setCancelable(true)

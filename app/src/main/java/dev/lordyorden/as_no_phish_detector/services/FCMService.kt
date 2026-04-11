@@ -23,7 +23,7 @@ class FCMService : FirebaseMessagingService() {
                 addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
                 // Required if starting from a Service/Background context
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 
                 action = SHOW_DETAILS_ACTION
 
@@ -58,7 +58,7 @@ class FCMService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "FCMService"
         const val CHANNEL_ID = "dev.lordyorden.as_no_phish_detector.CHANNEL_ID_TOPIC"
-        const val NOTIFICATION_ID = 127
+        const val NOTIFICATION_ID = 128
         const val SHOW_DETAILS_ACTION = "dev.lordyorden.as_no_phish_detector.action.show_details"
     }
 
