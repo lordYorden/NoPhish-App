@@ -1,16 +1,36 @@
 package dev.lordyorden.as_no_phish_detector.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.clerk.api.Clerk
+import com.clerk.api.network.serialization.errorMessage
+import com.clerk.api.network.serialization.onFailure
+import com.clerk.api.network.serialization.onSuccess
+import com.clerk.api.signup.SignUp
+import com.clerk.api.sso.OAuthProvider
+import com.clerk.api.user.fullName
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentProfileDetailsBinding
+import dev.lordyorden.as_no_phish_detector.models.Member
+import dev.lordyorden.as_no_phish_detector.models.Task
+import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
+import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
+import kotlinx.coroutines.launch
 
 class ProfileDetailsFragment : Fragment() {
     private lateinit var binding: FragmentProfileDetailsBinding
+
+    private val name: String
+        get() = binding.etName.text.toString()
+
+    private val familyRole: String
+        get() = binding.spRole.text.toString()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -23,8 +43,102 @@ class ProfileDetailsFragment : Fragment() {
     }
 
     private fun initViews() {
-        val roles = arrayOf("Parent", "Child", "Grandparent", "Other")
+        setupDropdown()
+
+        if(!Clerk.isSignedIn){
+            signUpWithGoogle()
+        }
+
+        observeUserFlow()
+
+        lifecycleScope.launch {
+            testConvex()
+        }
+
+        binding.btnSave.setOnClickListener {
+            if(name.isNotEmpty() && familyRole.isNotEmpty()) {
+                lifecycleScope.launch {
+                    registerMember()
+                }
+            } else {
+                Log.w(TAG, "Save ignored because name or familyRole is empty")
+            }
+        }
+    }
+
+    private suspend fun testConvex() {
+        val client = ConvexHelper.getInstance().convexClient
+        client.subscribe<List<Task>>("tasks:get").collect { result ->
+                result.onSuccess { tasks ->
+                    Log.d(TAG, "Received ${tasks.size} tasks")
+                    tasks.forEach{ task->
+                        Log.d(TAG, "text: ${task.text}, isComplete: ${task.isCompleted}")
+                    }
+                }.onFailure { error ->
+                    Log.e(TAG, "Failed to fetch tasks", error)
+                }
+        }
+
+/*        client.subscribe<List<Member>>("members:get").collect { result ->
+            result.onSuccess { members ->
+                Log.d(TAG, "Received ${members.size} members")
+                members.forEach{ member->
+                    Log.d(TAG, "name: ${member.name}, role: ${member.familyRole}")
+                }
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to fetch members", error)
+            }
+        }*/
+    }
+
+    private suspend fun registerMember() {
+        val client = ConvexHelper.getInstance().convexClient
+        client.action("members:register", mapOf(
+            "name" to name,
+            "familyRole" to familyRole,
+        ))
+    }
+
+    private fun setupDropdown() {
+        val roles = arrayOf("Son", "Daughter", "Nephew", "Niece", "Uncle", "Aunt", "Grandparent", "Grandchild", "Other")
         val adapter = ArrayAdapter(requireContext(), R.layout.list_item, roles)
         binding.spRole.setAdapter(adapter)
     }
+
+    private fun signUpWithGoogle() {
+        lifecycleScope.launch {
+            Clerk.auth.signUpWithOAuth(OAuthProvider.GOOGLE)
+                .onSuccess { res ->
+                    if (res.signUp?.status == SignUp.Status.COMPLETE) {
+                        // Navigate to home
+                    } else {
+                        // User might need to provide extra info (e.g. missing phone number)
+                        Log.d("Clerk", "Missing requirements: ${res.signUp?.requiredFields}")
+                    }
+                }
+                .onFailure { error ->
+                    Log.e("Clerk", "OAuth failed: ${error.errorMessage}")
+                }
+        }
+    }
+
+    private fun observeUserFlow() {
+        lifecycleScope.launch {
+//            repeatOnLifecycle(Lifecycle.State.STARTED)
+            Clerk.userFlow.collect { user ->
+
+                requireActivity().runOnUiThread {
+                    binding.etName.setText(user?.fullName())
+                }
+
+                user?.imageUrl?.let { ImageLoader.getInstance().loadImage(it, binding.ivProfile) }
+                Log.d("Clerk", "user details: $user")
+            }
+        }
+    }
+
+    companion object {
+        private const val TAG = "ProfileDetailsFragment"
+    }
+
 }

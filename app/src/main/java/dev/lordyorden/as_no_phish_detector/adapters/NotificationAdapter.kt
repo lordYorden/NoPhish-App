@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import dev.lordyorden.as_no_phish_detector.databinding.NotificationItemBinding
 import dev.lordyorden.as_no_phish_detector.models.Notification
-import dev.lordyorden.tradely.utilities.ImageLoader
+import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 
 class NotificationAdapter(
     private val notifications: List<Notification>,

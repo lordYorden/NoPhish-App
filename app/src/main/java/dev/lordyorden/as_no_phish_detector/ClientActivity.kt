@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.clerk.api.Clerk
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
@@ -21,7 +22,7 @@ import dev.lordyorden.as_no_phish_detector.databinding.UrlItemBinding
 import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
-import dev.lordyorden.tradely.utilities.ImageLoader
+import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, EasyPermissions.PermissionCallbacks {
@@ -115,6 +116,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        Clerk.auth.handle(intent.data)
         handleIntent(intent)
     }
 

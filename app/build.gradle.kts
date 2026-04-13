@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -10,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.lordyorden.as_no_phish_detector"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -28,13 +29,19 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
         }
     }
 
@@ -72,11 +79,21 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.google.firebase/firebase-messaging
     implementation(libs.firebase.messaging)
-
+    implementation(libs.glide)
     implementation(libs.kotlin.onetimepassword)
 
     implementation(libs.otpinput)
 
+    //convex
+    implementation("dev.convex:android-convexmobile:0.8.0@aar") {
+        isTransitive = true
+    }
+    implementation(libs.kotlinx.serialization.json)
 
+    //clerk
+    implementation(libs.clerk.android.api)
+    implementation(libs.clerk.android.ui)
+
+    implementation(libs.clerk.convex.kotlin)
 
 }

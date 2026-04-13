@@ -97,6 +97,7 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:hint="@string/name"
+            android:textColor="@color/on_surface"
             android:inputType="textPersonName"
             android:fontFamily="@font/plus_jakarta_sans"
             android:paddingStart="24dp"
@@ -197,6 +198,7 @@
 
     <!-- Save and Continue Button -->
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_save"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:text="@string/save_and_continue"

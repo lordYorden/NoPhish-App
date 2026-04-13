@@ -1,9 +1,10 @@
-package dev.lordyorden.tradely.utilities
+package dev.lordyorden.as_no_phish_detector.utilities
 
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.appcompat.widget.AppCompatImageView
+import com.bumptech.glide.Glide
 import dev.lordyorden.as_no_phish_detector.R
 import java.lang.ref.WeakReference
 
@@ -45,10 +46,10 @@ class ImageLoader private constructor(context: Context) {
         }
     }
 
-/*    fun loadImage(
+    fun loadImage(
         source: Drawable,
         imageView: AppCompatImageView,
-        placeholder: Int = R.drawable.unavailable_photo
+        placeholder: Int = R.drawable.bg_light_green_circle
     ) {
         contextRef.get()?.let { context ->
             Glide
@@ -63,7 +64,7 @@ class ImageLoader private constructor(context: Context) {
     fun loadImage(
         source: String,
         imageView: AppCompatImageView,
-        placeholder: Int = R.drawable.unavailable_photo
+        placeholder: Int = R.drawable.bg_light_green_circle
     ) {
         contextRef.get()?.let { context ->
             Glide
@@ -73,6 +74,6 @@ class ImageLoader private constructor(context: Context) {
                 .placeholder(placeholder)
                 .into(imageView)
         }
-    }*/
+    }
 
 }
