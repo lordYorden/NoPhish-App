@@ -3,6 +3,7 @@ package dev.lordyorden.as_no_phish_detector.utilities
 import android.content.Context
 import com.clerk.convex.createClerkConvexClient
 import dev.convex.android.ConvexClientWithAuth
+import dev.convex.android.initConvexLogging
 import java.lang.ref.WeakReference
 
 class ConvexHelper private constructor(context: Context){
@@ -30,6 +31,7 @@ class ConvexHelper private constructor(context: Context){
     init {
         contextRef.get()?.let { ctx ->
             convexClient = createClerkConvexClient("https://enchanted-mallard-804.convex.cloud", ctx)
+            initConvexLogging()
         }
     }
 

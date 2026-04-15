@@ -11,11 +11,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.adapters.CircleAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
+import dev.lordyorden.as_no_phish_detector.databinding.SectionCloseCircleBinding
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
+import dev.lordyorden.as_no_phish_detector.models.Member
+import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 
 class CircleFragment : Fragment() {
 
     private lateinit var binding: FragmentCircleBinding
+    private lateinit var circleBinding: SectionCloseCircleBinding
     private val circleMembers: List<CircleMember> = listOf(
         CircleMember("itay", "nephew", false, "none", "hello"),
         CircleMember("yarden", "nephew", true, "none", "hello1"),
@@ -32,7 +36,7 @@ class CircleFragment : Fragment() {
     }
 
     private fun initViews() {
-        val circleBinding = binding.llcCircle
+        circleBinding = binding.llcCircle
 
         circleBinding.rvCircle.layoutManager = LinearLayoutManager(requireActivity())
 
@@ -46,5 +50,26 @@ class CircleFragment : Fragment() {
             findNavController().navigate(R.id.action_nev_circle_to_invite_fragment)
         }
 
+    }
+
+    suspend fun getCircleMembers(){
+        val client = ConvexHelper.getInstance().convexClient
+        client.subscribe<List<Member>>("members:get").collect { result ->
+            result.onSuccess { members ->
+                Log.d(TAG, "Received ${members.size} members")
+                members.forEach{ member->
+                    requireActivity().runOnUiThread {
+                        //TODO fin function
+                    }
+                    Log.d(TAG, "name: ${member.name}, role: ${member.familyRole}")
+                }
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to fetch members", error)
+            }
+        }
+    }
+
+    companion object{
+        const val TAG: String = "CircleFragment"
     }
 }

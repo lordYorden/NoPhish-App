@@ -68,18 +68,18 @@ class ProfileDetailsFragment : Fragment() {
 
     private suspend fun testConvex() {
         val client = ConvexHelper.getInstance().convexClient
-        client.subscribe<List<Task>>("tasks:get").collect { result ->
-                result.onSuccess { tasks ->
-                    Log.d(TAG, "Received ${tasks.size} tasks")
-                    tasks.forEach{ task->
-                        Log.d(TAG, "text: ${task.text}, isComplete: ${task.isCompleted}")
-                    }
-                }.onFailure { error ->
-                    Log.e(TAG, "Failed to fetch tasks", error)
-                }
-        }
+//        client.subscribe<List<Task>>("tasks:get").collect { result ->
+//                result.onSuccess { tasks ->
+//                    Log.d(TAG, "Received ${tasks.size} tasks")
+//                    tasks.forEach{ task->
+//                        Log.d(TAG, "text: ${task.text}, isComplete: ${task.isCompleted}")
+//                    }
+//                }.onFailure { error ->
+//                    Log.e(TAG, "Failed to fetch tasks", error)
+//                }
+//        }
 
-/*        client.subscribe<List<Member>>("members:get").collect { result ->
+        client.subscribe<List<Member>>("members:get").collect { result ->
             result.onSuccess { members ->
                 Log.d(TAG, "Received ${members.size} members")
                 members.forEach{ member->
@@ -88,12 +88,12 @@ class ProfileDetailsFragment : Fragment() {
             }.onFailure { error ->
                 Log.e(TAG, "Failed to fetch members", error)
             }
-        }*/
+        }
     }
 
     private suspend fun registerMember() {
         val client = ConvexHelper.getInstance().convexClient
-        client.action("members:register", mapOf(
+        client.mutation<String>("members:register", mapOf(
             "name" to name,
             "familyRole" to familyRole,
         ))
