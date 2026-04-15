@@ -32,12 +32,14 @@ class JoinCircleFragment : Fragment() {
     }
 
     private fun initViews() {
-
         binding.otpInput.onInputFinishedListener { otpText ->
             Log.d("JoinScreen", "otp fin: $otpText")
-            if (otpText == Constants.OTP.TEST_VALUE){
-                findNavController().navigate(R.id.action_joinCircleFragment_to_profileDetailsFragment)
-            }
+//            if (otpText == Constants.OTP.TEST_VALUE){
+                val bundle = Bundle().apply {
+                    putString("JoinCode", otpText)
+                }
+                findNavController().navigate(R.id.action_joinCircleFragment_to_profileDetailsFragment, bundle)
+//            }
         }
     }
 }

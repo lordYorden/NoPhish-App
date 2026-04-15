@@ -8,6 +8,7 @@ import dev.lordyorden.as_no_phish_detector.databinding.BadgeActiveBinding
 import dev.lordyorden.as_no_phish_detector.databinding.BadgePendingBinding
 import dev.lordyorden.as_no_phish_detector.databinding.ItemCircleMemberBinding
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
+import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 
 class CircleAdapter(
     private val members: List<CircleMember>,
@@ -30,15 +31,20 @@ class CircleAdapter(
             with(getItem(position)){
                 tvName.text = buildString {
                     append(name)
-                    append(" (")
-                    append(role)
+                }
+
+                tvRole.text = buildString {
+                    append("(")
+                    append(familyRole)
                     append(")")
                 }
 
+                ImageLoader.getInstance().loadImage(avatarUrl ?: "", ivIcon, R.drawable.bg_circle_avatar_gray)
 
-
+                frameBadgeStatus.removeAllViews()
                 when(isConnected){
                     true -> {
+                        root.alpha = 1f
                         tvStatus.text = root.resources.getString(R.string.watching_over)
                         val activeBadge = BadgeActiveBinding.inflate(LayoutInflater.from(root.context))
                         frameBadgeStatus.addView(activeBadge.root)

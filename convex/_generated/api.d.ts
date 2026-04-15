@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as circles from "../circles.js";
 import type * as members from "../members.js";
+import type * as otps from "../otps.js";
 import type * as tasks from "../tasks.js";
 
 import type {
@@ -18,7 +20,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  circles: typeof circles;
   members: typeof members;
+  otps: typeof otps;
   tasks: typeof tasks;
 }>;
 

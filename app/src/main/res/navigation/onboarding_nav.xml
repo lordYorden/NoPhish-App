@@ -28,5 +28,6 @@
         android:id="@+id/profileDetailsFragment"
         android:name="dev.lordyorden.as_no_phish_detector.ui.ProfileDetailsFragment"
         android:label="ProfileDetailsFragment"
-        tools:layout="@layout/fragment_profile_details"/>
+        tools:layout="@layout/fragment_profile_details">
+    </fragment>
 </navigation>

@@ -1,5 +1,6 @@
 package dev.lordyorden.as_no_phish_detector.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,10 +16,12 @@ import com.clerk.api.network.serialization.onSuccess
 import com.clerk.api.signup.SignUp
 import com.clerk.api.sso.OAuthProvider
 import com.clerk.api.user.fullName
+import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentProfileDetailsBinding
-import dev.lordyorden.as_no_phish_detector.models.Member
+import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Task
+import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 import kotlinx.coroutines.launch
@@ -31,6 +34,8 @@ class ProfileDetailsFragment : Fragment() {
 
     private val familyRole: String
         get() = binding.spRole.text.toString()
+
+    private lateinit var otpCode: String
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,10 +56,6 @@ class ProfileDetailsFragment : Fragment() {
 
         observeUserFlow()
 
-        lifecycleScope.launch {
-            testConvex()
-        }
-
         binding.btnSave.setOnClickListener {
             if(name.isNotEmpty() && familyRole.isNotEmpty()) {
                 lifecycleScope.launch {
@@ -64,22 +65,29 @@ class ProfileDetailsFragment : Fragment() {
                 Log.w(TAG, "Save ignored because name or familyRole is empty")
             }
         }
+
+        getOtpCode(arguments)
+    }
+
+    private fun getOtpCode(args: Bundle?) {
+        otpCode = args?.getString("JoinCode", Constants.OTP.TEST_VALUE) ?: Constants.OTP.TEST_VALUE
+        Log.d(TAG, "got otp: $otpCode")
     }
 
     private suspend fun testConvex() {
         val client = ConvexHelper.getInstance().convexClient
-//        client.subscribe<List<Task>>("tasks:get").collect { result ->
-//                result.onSuccess { tasks ->
-//                    Log.d(TAG, "Received ${tasks.size} tasks")
-//                    tasks.forEach{ task->
-//                        Log.d(TAG, "text: ${task.text}, isComplete: ${task.isCompleted}")
-//                    }
-//                }.onFailure { error ->
-//                    Log.e(TAG, "Failed to fetch tasks", error)
-//                }
-//        }
+        client.subscribe<List<Task>>("tasks:get").collect { result ->
+                result.onSuccess { tasks ->
+                    Log.d(TAG, "Received ${tasks.size} tasks")
+                    tasks.forEach{ task->
+                        Log.d(TAG, "text: ${task.text}, isComplete: ${task.isCompleted}")
+                    }
+                }.onFailure { error ->
+                    Log.e(TAG, "Failed to fetch tasks", error)
+                }
+        }
 
-        client.subscribe<List<Member>>("members:get").collect { result ->
+        client.subscribe<List<CircleMember>>("members:get").collect { result ->
             result.onSuccess { members ->
                 Log.d(TAG, "Received ${members.size} members")
                 members.forEach{ member->
@@ -93,10 +101,26 @@ class ProfileDetailsFragment : Fragment() {
 
     private suspend fun registerMember() {
         val client = ConvexHelper.getInstance().convexClient
-        client.mutation<String>("members:register", mapOf(
-            "name" to name,
-            "familyRole" to familyRole,
-        ))
+        val avatarUrl = Clerk.activeUser?.imageUrl ?: ""
+
+        try {
+            val circleId = client.mutation<String>("members:register", mapOf(
+                "code" to otpCode,
+                "name" to name,
+                "familyRole" to familyRole,
+                "avatarUrl" to avatarUrl
+            ))
+
+            //move to client activity
+            val intent = Intent(requireActivity(), ClientActivity::class.java).apply {
+                putExtra("circleId", circleId)
+            }
+            requireActivity().startActivity(intent)
+
+        } catch (e: Exception) {
+            val msg = e.message ?: "no message"
+            Log.e(TAG, "error: $msg")
+        }
     }
 
     private fun setupDropdown() {
@@ -124,7 +148,6 @@ class ProfileDetailsFragment : Fragment() {
 
     private fun observeUserFlow() {
         lifecycleScope.launch {
-//            repeatOnLifecycle(Lifecycle.State.STARTED)
             Clerk.userFlow.collect { user ->
 
                 requireActivity().runOnUiThread {
