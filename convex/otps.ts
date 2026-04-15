@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+const OWNER_OTP_CODE = "999999";
+
 export const issue = mutation({
     args: {
         code: v.string(),
@@ -36,7 +38,7 @@ export const redeem = async (
         throw new Error("Invalid OTP code");
     }
 
-    if (otpRecord.issuerId === memberId) {
+    if (otpRecord.code !== OWNER_OTP_CODE && otpRecord.issuerId === memberId) {
         throw new Error("Cannot redeem OTP code issued by the same user");
     }
 

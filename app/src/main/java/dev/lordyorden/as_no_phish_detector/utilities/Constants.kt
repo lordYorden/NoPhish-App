@@ -16,5 +16,6 @@ class Constants {
         const val OTP_SECRET = "test"
         const val AUTO_GENERATE_SECRET = true //false for better testing
         const val TEST_VALUE = "888888"
+        const val OWNER_OTP = "999999"
     }
 }

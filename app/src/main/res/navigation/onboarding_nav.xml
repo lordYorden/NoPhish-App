@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_welcomeFragment_to_joinCircleFragment"
             app:destination="@id/joinCircleFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_circleCreationFragment"
+            app:destination="@id/circleCreationFragment" />
     </fragment>
 
     <fragment
@@ -29,5 +32,14 @@
         android:name="dev.lordyorden.as_no_phish_detector.ui.ProfileDetailsFragment"
         android:label="ProfileDetailsFragment"
         tools:layout="@layout/fragment_profile_details">
+    </fragment>
+    <fragment
+        android:id="@+id/circleCreationFragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.CircleCreationFragment"
+        android:label="CircleCreationFragment"
+        tools:layout="@layout/fragment_circle_creation">
+        <action
+            android:id="@+id/action_circleCreationFragment_to_profileDetailsFragment"
+            app:destination="@id/profileDetailsFragment" />
     </fragment>
 </navigation>

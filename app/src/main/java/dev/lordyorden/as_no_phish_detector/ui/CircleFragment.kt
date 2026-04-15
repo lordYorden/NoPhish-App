@@ -50,7 +50,12 @@ class CircleFragment : Fragment() {
         circleBinding.rvCircle.adapter = adapter
 
         circleBinding.btnAdd.setOnClickListener {
-            findNavController().navigate(R.id.action_nev_circle_to_invite_fragment)
+
+            val bundle = Bundle().apply {
+                putString("circleId", circleId)
+            }
+
+            findNavController().navigate(R.id.action_nev_circle_to_invite_fragment, bundle)
         }
 
         getCircleId()

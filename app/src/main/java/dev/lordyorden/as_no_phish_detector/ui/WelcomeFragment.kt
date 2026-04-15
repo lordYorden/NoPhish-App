@@ -27,8 +27,10 @@ class WelcomeFragment : Fragment() {
 
     private fun initViews() {
         binding.btnSetup.setOnClickListener{
-            val intent = Intent(requireActivity(), ClientActivity::class.java)
-            startActivity(intent)
+//            val intent = Intent(requireActivity(), ClientActivity::class.java)
+//            startActivity(intent)
+
+            findNavController().navigate(R.id.action_welcomeFragment_to_circleCreationFragment)
         }
 
         binding.btnJoin.setOnClickListener{

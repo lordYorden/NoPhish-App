@@ -64,4 +64,11 @@
     <string name="circle_code">CIRCLE CODE</string>
     <string name="share_code">Share Code</string>
     <string name="no_url_was_found">No URL was found</string>
+    <string name="create_circle">Create Circle</string>
+    <string name="once_created">Once created, you can invite family members with a secure code.</string>
+    <string name="description">Description</string>
+    <string name="circle_details">Circle Details</string>
+    <string name="description_hint">Who is it for?</string>
+    <string name="circle_name">Circle Name *</string>
+    <string name="circle_creation_subtitle">Name your close circle and provide it a brief description</string>
 </resources>

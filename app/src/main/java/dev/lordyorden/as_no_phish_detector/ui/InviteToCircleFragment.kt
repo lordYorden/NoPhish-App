@@ -27,6 +27,9 @@ class InviteToCircleFragment : Fragment() {
     private lateinit var passGen: HmacOneTimePasswordGenerator
     private var counter: Long = 0L
 
+    private lateinit var circleId: String
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -40,6 +43,8 @@ class InviteToCircleFragment : Fragment() {
     private fun initViews() {
 
         configOtp()
+
+        getCircleId()
 
         lifecycleScope.launch {
             getOrGenerateCode()
@@ -67,7 +72,7 @@ class InviteToCircleFragment : Fragment() {
                     try {
                         client.mutation("otps:issue", mapOf(
                             "code" to code,
-                            "circleId" to "test_circle"
+                            "circleId" to "jh72p00m5x2vf4wqt3g2xwxfkh84wc6r"
                         ))
                     } catch (e: Exception) {
                         val msg = e.message ?: "no msg"
@@ -91,6 +96,12 @@ class InviteToCircleFragment : Fragment() {
 
     private fun generateNewPinCode(): String {
         return passGen.generate(counter++)
+    }
+
+    private fun getCircleId() {
+        val extra = requireActivity().intent.extras
+        circleId = extra?.getString("circleId", "test_circle") ?: "test_circle"
+        Log.d(CircleFragment.TAG, "got circleId: $circleId")
     }
 
     private fun configOtp(){
