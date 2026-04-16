@@ -55,8 +55,13 @@ class InviteToCircleFragment : Fragment() {
         }
 
         binding.btnSend.setOnClickListener {
-            //todo: add a circle message to send
-            sendMessage(code)
+            val msg = buildString {
+                append("Please join my Close Circle using the code: ")
+                append(code)
+                append("\nso we can keep my account secure together.")
+            }
+
+            sendMessage(msg)
         }
     }
 

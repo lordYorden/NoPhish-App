@@ -2,7 +2,6 @@ package dev.lordyorden.as_no_phish_detector.models
 
 import kotlinx.serialization.Serializable
 
-//todo unite with circle member
 @Serializable
 data class CircleMember(
     val name: String,
