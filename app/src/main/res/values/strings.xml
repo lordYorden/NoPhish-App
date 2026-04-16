@@ -71,4 +71,9 @@
     <string name="description_hint">Who is it for?</string>
     <string name="circle_name">Circle Name *</string>
     <string name="circle_creation_subtitle">Name your close circle and provide it a brief description</string>
+    <string name="sign_out">sign out</string>
+    <string name="welcome">"Welcome"</string>
+    <string name="policy_subtitle">By signing in, you agree to our Privacy Policy and Terms of Service.</string>
+    <string name="with_google">Sign in with Google</string>
+    <string name="login_divider_text">Protected</string>
 </resources>

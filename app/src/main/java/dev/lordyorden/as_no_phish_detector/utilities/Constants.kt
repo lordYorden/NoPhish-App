@@ -18,4 +18,10 @@ class Constants {
         const val TEST_VALUE = "888888"
         const val OWNER_OTP = "999999"
     }
+
+    object Circle {
+        const val CIRCLE_TEMP_ID = "test_circle"
+        const val CIRCLE_CODE_KEY = "JoinCode"
+        const val CIRCLE_ID_KEY = "circleId"
+    }
 }

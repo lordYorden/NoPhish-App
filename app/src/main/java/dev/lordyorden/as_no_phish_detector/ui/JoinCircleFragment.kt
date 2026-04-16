@@ -36,7 +36,7 @@ class JoinCircleFragment : Fragment() {
             Log.d("JoinScreen", "otp fin: $otpText")
 //            if (otpText == Constants.OTP.TEST_VALUE){
                 val bundle = Bundle().apply {
-                    putString("JoinCode", otpText)
+                    putString(Constants.Circle.CIRCLE_CODE_KEY, otpText)
                 }
                 findNavController().navigate(R.id.action_joinCircleFragment_to_profileDetailsFragment, bundle)
 //            }

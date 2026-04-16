@@ -41,7 +41,6 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Replace with your actual package name -->
                 <data android:scheme="dev.lordyorden.as_no_phish_detector" android:host="callback" />
             </intent-filter>
         </activity>

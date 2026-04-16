@@ -7,7 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentInviteToCircleBinding
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
@@ -47,7 +49,9 @@ class InviteToCircleFragment : Fragment() {
         getCircleId()
 
         lifecycleScope.launch {
-            getOrGenerateCode()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                getOrGenerateCode()
+            }
         }
 
         binding.btnSend.setOnClickListener {
@@ -72,7 +76,7 @@ class InviteToCircleFragment : Fragment() {
                     try {
                         client.mutation("otps:issue", mapOf(
                             "code" to code,
-                            "circleId" to "jh72p00m5x2vf4wqt3g2xwxfkh84wc6r"
+                            "circleId" to circleId
                         ))
                     } catch (e: Exception) {
                         val msg = e.message ?: "no msg"
@@ -100,7 +104,7 @@ class InviteToCircleFragment : Fragment() {
 
     private fun getCircleId() {
         val extra = requireActivity().intent.extras
-        circleId = extra?.getString("circleId", "test_circle") ?: "test_circle"
+        circleId = extra?.getString(Constants.Circle.CIRCLE_ID_KEY, Constants.Circle.CIRCLE_TEMP_ID) ?: Constants.Circle.CIRCLE_TEMP_ID
         Log.d(CircleFragment.TAG, "got circleId: $circleId")
     }
 

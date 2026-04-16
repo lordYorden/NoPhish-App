@@ -59,7 +59,7 @@ class CircleCreationFragment : Fragment() {
             ))
 
             val extra = Bundle().apply {
-                putString("JoinCode", Constants.OTP.OWNER_OTP)
+                putString(Constants.Circle.CIRCLE_CODE_KEY, Constants.OTP.OWNER_OTP)
             }
 
             findNavController().navigate(R.id.action_circleCreationFragment_to_profileDetailsFragment, extra)

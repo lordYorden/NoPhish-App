@@ -1,13 +1,11 @@
 package dev.lordyorden.as_no_phish_detector.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentWelcomeBinding
 
@@ -25,11 +23,12 @@ class WelcomeFragment : Fragment() {
         return binding.root
     }
 
-    private fun initViews() {
-        binding.btnSetup.setOnClickListener{
-//            val intent = Intent(requireActivity(), ClientActivity::class.java)
-//            startActivity(intent)
 
+
+
+    private fun initViews() {
+
+        binding.btnSetup.setOnClickListener{
             findNavController().navigate(R.id.action_welcomeFragment_to_circleCreationFragment)
         }
 

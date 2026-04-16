@@ -10,15 +10,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
+import com.clerk.api.Clerk
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.models.PermissionRequest
+import dev.lordyorden.as_no_phish_detector.ClientActivity
+import dev.lordyorden.as_no_phish_detector.MainActivity
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentSettingsBinding
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
+import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
 
     private lateinit var binding: FragmentSettingsBinding
-    val permsViewModel: PermsViewModel by activityViewModels()
+    private val permsViewModel: PermsViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,6 +41,15 @@ class SettingsFragment : Fragment() {
 
 
     private fun initViews() {
+
+        binding.btnLogout.setOnClickListener {
+            lifecycleScope.launch {
+                Clerk.auth.signOut()
+                val intent = Intent(requireActivity(), MainActivity::class.java)
+                requireActivity().startActivity(intent)
+            }
+        }
+
         binding.postNotifMs.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked)
                 requestPerm("android.permission.POST_NOTIFICATIONS", Constants.Perms.POST_NOTIFICATION_CODE)
@@ -112,7 +126,7 @@ class SettingsFragment : Fragment() {
         EasyPermissions.requestPermissions(requireActivity(), request)
     }
 
-    fun activatePerm(requestCode: Int) {
+    private fun activatePerm(requestCode: Int) {
         when (requestCode) {
             Constants.Perms.POST_NOTIFICATION_CODE -> {
                 binding.postNotifMs.isChecked = true
@@ -130,7 +144,7 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    fun deniedPerm(requestCode: Int) {
+    private fun deniedPerm(requestCode: Int) {
         when (requestCode) {
             Constants.Perms.POST_NOTIFICATION_CODE -> {
                 startActivity(

@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import dev.lordyorden.as_no_phish_detector.R
@@ -16,6 +18,7 @@ import dev.lordyorden.as_no_phish_detector.adapters.CircleAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
 import dev.lordyorden.as_no_phish_detector.databinding.SectionCloseCircleBinding
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
+import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import kotlinx.coroutines.launch
 
@@ -52,7 +55,7 @@ class CircleFragment : Fragment() {
         circleBinding.btnAdd.setOnClickListener {
 
             val bundle = Bundle().apply {
-                putString("circleId", circleId)
+                putString(Constants.Circle.CIRCLE_ID_KEY, circleId)
             }
 
             findNavController().navigate(R.id.action_nev_circle_to_invite_fragment, bundle)
@@ -61,13 +64,15 @@ class CircleFragment : Fragment() {
         getCircleId()
 
         lifecycleScope.launch {
-            getCircleMembers()
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                getCircleMembers()
+            }
         }
     }
 
     private fun getCircleId() {
         val extra = requireActivity().intent.extras
-        circleId = extra?.getString("circleId", "test_circle") ?: "test_circle"
+        circleId = extra?.getString(Constants.Circle.CIRCLE_ID_KEY, Constants.Circle.CIRCLE_TEMP_ID) ?: Constants.Circle.CIRCLE_TEMP_ID
         Log.d(TAG, "got circleId: $circleId")
     }
 

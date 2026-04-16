@@ -8,13 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.clerk.api.Clerk
-import com.clerk.api.network.serialization.errorMessage
-import com.clerk.api.network.serialization.onFailure
-import com.clerk.api.network.serialization.onSuccess
-import com.clerk.api.signup.SignUp
-import com.clerk.api.sso.OAuthProvider
 import com.clerk.api.user.fullName
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
@@ -50,10 +47,6 @@ class ProfileDetailsFragment : Fragment() {
     private fun initViews() {
         setupDropdown()
 
-        if(!Clerk.isSignedIn){
-            signUpWithGoogle()
-        }
-
         observeUserFlow()
 
         binding.btnSave.setOnClickListener {
@@ -70,7 +63,7 @@ class ProfileDetailsFragment : Fragment() {
     }
 
     private fun getOtpCode(args: Bundle?) {
-        otpCode = args?.getString("JoinCode", Constants.OTP.TEST_VALUE) ?: Constants.OTP.TEST_VALUE
+        otpCode = args?.getString(Constants.Circle.CIRCLE_CODE_KEY, Constants.OTP.TEST_VALUE) ?: Constants.OTP.TEST_VALUE
         Log.d(TAG, "got otp: $otpCode")
     }
 
@@ -113,7 +106,7 @@ class ProfileDetailsFragment : Fragment() {
 
             //move to client activity
             val intent = Intent(requireActivity(), ClientActivity::class.java).apply {
-                putExtra("circleId", circleId)
+                putExtra(Constants.Circle.CIRCLE_ID_KEY, circleId)
             }
             requireActivity().startActivity(intent)
 
@@ -129,33 +122,20 @@ class ProfileDetailsFragment : Fragment() {
         binding.spRole.setAdapter(adapter)
     }
 
-    private fun signUpWithGoogle() {
-        lifecycleScope.launch {
-            Clerk.auth.signUpWithOAuth(OAuthProvider.GOOGLE)
-                .onSuccess { res ->
-                    if (res.signUp?.status == SignUp.Status.COMPLETE) {
-                        // Navigate to home
-                    } else {
-                        // User might need to provide extra info (e.g. missing phone number)
-                        Log.d("Clerk", "Missing requirements: ${res.signUp?.requiredFields}")
-                    }
-                }
-                .onFailure { error ->
-                    Log.e("Clerk", "OAuth failed: ${error.errorMessage}")
-                }
-        }
-    }
-
     private fun observeUserFlow() {
         lifecycleScope.launch {
-            Clerk.userFlow.collect { user ->
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Clerk.userFlow.collect { user ->
 
-                requireActivity().runOnUiThread {
-                    binding.etName.setText(user?.fullName())
+                    requireActivity().runOnUiThread {
+                        binding.etName.setText(user?.fullName())
+                    }
+
+                    user?.imageUrl?.let {
+                        ImageLoader.getInstance().loadImage(it, binding.ivProfile)
+                    }
+                    Log.d("Clerk", "user details: $user")
                 }
-
-                user?.imageUrl?.let { ImageLoader.getInstance().loadImage(it, binding.ivProfile) }
-                Log.d("Clerk", "user details: $user")
             }
         }
     }
