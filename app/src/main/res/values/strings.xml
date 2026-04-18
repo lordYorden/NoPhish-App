@@ -76,4 +76,6 @@
     <string name="policy_subtitle">By signing in, you agree to our Privacy Policy and Terms of Service.</string>
     <string name="with_google">Sign in with Google</string>
     <string name="login_divider_text">Protected</string>
+    <string name="history">History</string>
+    <string name="profile">Profile</string>
 </resources>

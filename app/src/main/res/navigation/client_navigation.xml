@@ -2,8 +2,12 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mobile_navigation"
+    android:id="@+id/client_navigation"
     app:startDestination="@+id/nev_circle">
+
+    <action
+        android:id="@+id/to_settings"
+        app:destination="@id/nev_settings"/>
 
     <fragment
         android:id="@+id/nev_circle"
@@ -13,7 +17,6 @@
         <action
             android:id="@+id/action_nev_circle_to_invite_fragment"
             app:destination="@id/invite_fragment" />
-
     </fragment>
 
     <fragment
@@ -27,16 +30,11 @@
         android:name="dev.lordyorden.as_no_phish_detector.ui.settings.SettingsFragment"
         android:label="@string/settings"
         tools:layout="@layout/fragment_settings">
-        <action
-            android:id="@+id/settings_to_notif"
-            app:destination="@id/nev_notification"
-            app:popUpTo="@id/nev_settings"
-            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
-        android:id="@+id/nev_notification"
+        android:id="@+id/nev_history"
         android:name="dev.lordyorden.as_no_phish_detector.ui.JoinCircleFragment"
-        android:label="@string/title_notifications"
+        android:label="@string/history"
         tools:layout="@layout/fragment_join_circle" />
 </navigation>

@@ -16,11 +16,11 @@
         app:navigationIcon="@drawable/ic_logout"
         app:navigationIconTint="@color/primary"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/nav_host_fragment_activity_client"
+        app:layout_constraintBottom_toTopOf="@id/nav_host_fragment_activity_main"
         />
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host_fragment_activity_client"
+        android:id="@+id/nav_host_fragment_activity_main"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"

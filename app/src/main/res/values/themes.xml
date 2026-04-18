@@ -38,6 +38,7 @@
         <item name="colorOnSurface">@color/primary</item>
         <item name="colorOnSurfaceVariant">@color/surface_text</item>
         <item name="colorOutline">@color/outline</item>
+        <item name="colorControlNormal">@color/primary</item>
     </style>
 
 </resources>

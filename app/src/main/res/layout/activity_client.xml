@@ -3,7 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:paddingEnd="10dp"
+        android:paddingStart="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/background"
+        app:menu="@menu/settings_action_menu"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/nav_host_fragment_activity_client" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
@@ -17,7 +29,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:menu="@menu/bottom_nav_menu" />
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment_activity_client"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
@@ -26,7 +38,7 @@
         app:layout_constraintBottom_toTopOf="@id/nav_view"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navGraph="@navigation/mobile_navigation" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:navGraph="@navigation/client_navigation" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

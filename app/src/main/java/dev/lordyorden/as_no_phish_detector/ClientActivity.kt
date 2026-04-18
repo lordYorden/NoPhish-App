@@ -1,18 +1,16 @@
 package dev.lordyorden.as_no_phish_detector
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.clerk.api.Clerk
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
 import com.vmadalin.easypermissions.EasyPermissions
@@ -24,11 +22,11 @@ import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 
-@RequiresApi(Build.VERSION_CODES.O)
 class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityClientBinding
-    val permsViewModel: PermsViewModel by viewModels()
+    private val permsViewModel: PermsViewModel by viewModels()
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +40,37 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
     }
 
     private fun initViews() {
-        val navView: BottomNavigationView = binding.navView
+        setupNav()
+        setupFCM()
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_client)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when(item.itemId){
+                R.id.action_settings -> {
+                    navController.navigate(R.id.to_settings)
+                }
+                else -> super.onOptionsItemSelected(item)
+            }
+            true
+        }
+
+    }
+
+    private fun setupFCM() {
+        FirebaseMessaging.getInstance().subscribeToTopic("test_topic")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("FCM", "Successfully subscribed to topic!")
+                } else {
+                    Log.e("FCM", "Subscription failed")
+                }
+            }
+    }
+
+    private fun setupNav() {
+        val navView = binding.navView
+
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_client) as NavHostFragment
+        navController = navHostFragment.navController
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
 //        val appBarConfiguration = AppBarConfiguration(
@@ -55,15 +81,6 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         //setupActionBarWithNavController(navController, appBarConfiguration)
 
         navView.setupWithNavController(navController)
-
-        FirebaseMessaging.getInstance().subscribeToTopic("test_topic")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("FCM", "Successfully subscribed to topic!")
-                } else {
-                    Log.e("FCM", "Subscription failed")
-                }
-            }
     }
 
 
@@ -164,6 +181,10 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         sheet.setCancelable(true)
         sheet.setContentView(sheetView.root)
         sheet.show()
+    }
+
+    companion object {
+        const val TAG = "ClientActivity"
     }
 }
 

@@ -15,9 +15,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.clerk.api.Clerk
 import com.clerk.api.network.serialization.errorMessage
@@ -32,11 +30,15 @@ import dev.lordyorden.as_no_phish_detector.clerk.UserUiState
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentLoginBinding
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginFragment : Fragment() {
     private lateinit var binding: FragmentLoginBinding
     private val userState: UserStateViewModel by viewModels()
+
+    private var isRunning: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,28 +51,22 @@ class LoginFragment : Fragment() {
     }
 
     private fun initViews() {
-
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                userState.uiState.collect { currState ->
-                    when (currState) {
-                        UserUiState.SignedIn -> {
+            userState.uiState.collect { currState ->
 
-                            val circleId = getMyCircle()
-                            if (circleId != Constants.Circle.CIRCLE_TEMP_ID){
-                                moveToClient(circleId)
-                            }
-                        }
+                when (currState) {
+                    UserUiState.SignedIn -> {
+                        fetchAndMoveToClient()
+                    }
 
-                        UserUiState.Loading -> {
-                            binding.btnGoogle.alpha = 0.65f
-                            binding.btnGoogle.isEnabled = false
-                        }
+                    UserUiState.Loading -> {
+                        binding.btnGoogle.alpha = 0.65f
+                        binding.btnGoogle.isEnabled = false
+                    }
 
-                        else -> {
-                            binding.btnGoogle.alpha = 1f
-                            binding.btnGoogle.isEnabled = true
-                        }
+                    else -> {
+                        binding.btnGoogle.alpha = 1f
+                        binding.btnGoogle.isEnabled = true
                     }
                 }
             }
@@ -80,6 +76,20 @@ class LoginFragment : Fragment() {
         binding.btnGoogle.setOnClickListener {
             signInWithGoogle()
         }
+    }
+
+    private suspend fun fetchAndMoveToClient(){
+        if (isRunning){ return }
+        isRunning = true
+
+        withContext(Dispatchers.IO){
+            val circleId = getMyCircle()
+            if (circleId != Constants.Circle.CIRCLE_TEMP_ID){
+                moveToClient(circleId)
+            }
+        }
+
+        isRunning = false
     }
 
     private fun moveToClient(circleId: String){
