@@ -78,4 +78,8 @@
     <string name="login_divider_text">Protected</string>
     <string name="history">History</string>
     <string name="profile">Profile</string>
+    <string name="more_details">More Details</string>
+    <string name="view_all">View All</string>
+    <string name="recent_activity">Recent Activity</string>
+    <string name="timestemp_temp">2m ago</string>
 </resources>
