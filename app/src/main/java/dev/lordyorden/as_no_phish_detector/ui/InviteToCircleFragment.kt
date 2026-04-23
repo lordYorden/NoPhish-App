@@ -75,7 +75,7 @@ class InviteToCircleFragment : Fragment() {
 
         client.subscribe<String>("otps:needsotp").collect{result ->
             result.onSuccess { otp ->
-                if (otp == "GENERATE"){
+                if (otp == Constants.Onboarding.ACTION_GENERATE){
                     code = generateNewPinCode()
 
                     try {

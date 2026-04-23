@@ -84,8 +84,13 @@ class LoginFragment : Fragment() {
 
         withContext(Dispatchers.IO){
             val circleId = getMyCircle()
-            if (circleId != Constants.Circle.CIRCLE_TEMP_ID){
+            if (circleId != Constants.Onboarding.ACTION_GENERATE){
                 moveToClient(circleId)
+            }
+            else {
+                requireActivity().runOnUiThread {
+                    findNavController().navigate(R.id.action_loginFragment_to_welcomeFragment)
+                }
             }
         }
 
@@ -110,7 +115,7 @@ class LoginFragment : Fragment() {
             Log.e(TAG, "error $msg")
         }
 
-        return Constants.Circle.CIRCLE_TEMP_ID
+        return Constants.Onboarding.ACTION_GENERATE
     }
 
     private val privacyClick = object : ClickableSpan() {
@@ -170,17 +175,8 @@ class LoginFragment : Fragment() {
                     if (res.signIn?.status != SignIn.Status.COMPLETE) {
                         // User might need to provide extra info (e.g. missing phone number)
                         Log.d("Clerk", "Missing requirements: ${res.signUp?.requiredFields}")
-                    } else {
-                        val circleId = getMyCircle()
-                        if (circleId != Constants.Circle.CIRCLE_TEMP_ID){
-                            moveToClient(circleId)
-                        }
-                        else{
-                            findNavController().navigate(R.id.action_loginFragment_to_welcomeFragment)
-                        }
                     }
-
-                    if (res.signIn?.status == SignIn.Status.NEEDS_CLIENT_TRUST) {
+                    else if (res.signIn?.status == SignIn.Status.NEEDS_CLIENT_TRUST) {
                         // You must now show a UI for the user to enter a code
                         // and call res.prepareFirstFactor() then res.attemptFirstFactor()
                         Log.d("Clerk", "Device is new. Verification code sent to email.")

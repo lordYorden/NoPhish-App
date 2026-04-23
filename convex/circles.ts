@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
-const CIRCLE_TEMP_ID = "test_circle"
+const GENERATE_CIRCLE = "GENERATE";
 
 export const create = mutation({
     args: {
@@ -55,6 +55,6 @@ export const get_my_circles = mutation({
             .filter((q) => q.eq(q.field("ownerId"), identity.subject))
             .first();
 
-        return circle?._id ?? CIRCLE_TEMP_ID;
+        return circle?._id ?? GENERATE_CIRCLE;
     }
 })

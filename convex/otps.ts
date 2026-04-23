@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 const OWNER_OTP_CODE = "999999";
+const GENERATE_OTP = "GENERATE";
 
 export const issue = mutation({
   args: {
@@ -82,7 +83,7 @@ export const needsotp = query({
       .first();
 
     if (!lastOtp || lastOtp.expiresAt < Date.now() || lastOtp.memberId) {
-      return "GENERATE";
+      return GENERATE_OTP;
     }
 
     return lastOtp.code;

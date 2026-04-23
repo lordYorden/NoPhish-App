@@ -11,6 +11,10 @@ class Constants {
         const val READ_SMS_CODE = 44
     }
 
+    object Onboarding{
+        const val ACTION_GENERATE = "GENERATE"
+    }
+
     object OTP {
         const val OTP_LENGTH = 6
         const val OTP_SECRET = "test"
@@ -20,7 +24,7 @@ class Constants {
     }
 
     object Circle {
-        const val CIRCLE_TEMP_ID = "test_circle"
+        const val CIRCLE_TEMP_ID = "jn7e7gmjn4ztprcbff91grwznx84wkad"
         const val CIRCLE_CODE_KEY = "JoinCode"
         const val CIRCLE_ID_KEY = "circleId"
     }
