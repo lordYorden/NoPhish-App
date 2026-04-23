@@ -34,7 +34,7 @@
 
     <fragment
         android:id="@+id/nev_history"
-        android:name="dev.lordyorden.as_no_phish_detector.ui.JoinCircleFragment"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.AttackHistoryFragment"
         android:label="@string/history"
-        tools:layout="@layout/fragment_join_circle" />
+        tools:layout="@layout/fragment_attack_history" />
 </navigation>

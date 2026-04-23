@@ -8,8 +8,10 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.savedstate.SavedState
 import com.clerk.api.Clerk
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
@@ -52,6 +54,24 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
             }
             true
         }
+
+        navController.addOnDestinationChangedListener(object : NavController.OnDestinationChangedListener {
+            override fun onDestinationChanged(
+                controller: NavController,
+                destination: NavDestination,
+                arguments: SavedState?
+            ) {
+                when(destination.id) {
+                    R.id.nev_history -> {
+                        binding.toolbar.visibility = View.GONE
+                    }
+                    else -> {
+                        binding.toolbar.visibility = View.VISIBLE
+                    }
+                }
+            }
+
+        })
 
     }
 

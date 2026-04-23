@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/background"
+    android:fitsSystemWindows="true">
+
+    <!-- Search View (Expanded State) -->
+    <com.google.android.material.search.SearchView
+        android:id="@+id/search_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:backgroundTint="@color/white"
+        android:hint="@string/search_hint"
+        app:layout_anchor="@id/search_bar">
+
+        <!-- Search suggestions/results go here -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_search_preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </com.google.android.material.search.SearchView>
+
+    <!-- Main Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Search Bar (Collapsed State) -->
+            <com.google.android.material.search.SearchBar
+                android:layout_marginHorizontal="16dp"
+                android:id="@+id/search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:backgroundTint="@color/white"
+                android:hint="@string/search_hint"
+                app:defaultMarginsEnabled="false"
+                app:strokeColor="@color/surface_text"
+                app:strokeWidth="1dp" />
+
+            <!-- Filter Chips -->
+
+            <HorizontalScrollView
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chip_group_filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_all_time"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="@string/chip_time_text"
+                        app:chipBackgroundColor="@color/chip_color_state"
+                        app:chipStrokeColor="@color/surface_text"
+                        app:chipStrokeWidth="1dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_last_7"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/chip_7_text"
+                        app:chipBackgroundColor="@color/chip_color_state"
+                        app:chipStrokeColor="@color/surface_text"
+                        app:chipStrokeWidth="1dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_last_30"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/chip_30_text"
+                        app:chipBackgroundColor="@color/chip_color_state"
+                        app:chipStrokeColor="@color/surface_text"
+                        app:chipStrokeWidth="1dp" />
+
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
+            <!-- Header Row -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_marginHorizontal="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/history_subtitle"
+                    android:textAllCaps="true"
+                    android:fontFamily="@font/noto_serif"
+                    android:textColor="@color/primary"
+                    android:textSize="18sp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/tv_result_count"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="4 results"
+                    android:fontFamily="@font/plus_jakarta_sans"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/secondary_variant"
+                    app:chipMinHeight="28dp"
+                    app:chipStrokeWidth="0dp" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_marginHorizontal="16dp"
+                android:id="@+id/rv_search_results"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible"
+                tools:listitem="@layout/item_attack_history"
+                tools:itemCount="3" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
