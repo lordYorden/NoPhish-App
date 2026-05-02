@@ -31,4 +31,16 @@ export default defineSchema({
         description: v.optional(v.string()),
         ownerId: v.string(),
     }),
+
+    event: defineTable({
+        userId: v.string(),
+        timestamp: v.number(),
+        action: v.string(),
+        moreDetails: v.optional(v.object({
+            body: v.string(),
+            packageName: v.string(),
+            urls: v.array(v.string()),
+        }))
+    })
+    .index("byDate", ["timestamp"])
 })

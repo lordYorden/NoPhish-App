@@ -19,6 +19,7 @@ import com.vmadalin.easypermissions.EasyPermissions
 import dev.lordyorden.as_no_phish_detector.databinding.ActivityClientBinding
 import dev.lordyorden.as_no_phish_detector.databinding.AttackDetailsBottomSheetBinding
 import dev.lordyorden.as_no_phish_detector.databinding.UrlItemBinding
+import dev.lordyorden.as_no_phish_detector.models.AttackDetails
 import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
@@ -163,34 +164,38 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         when(intent.action) {
             FCMService.SHOW_DETAILS_ACTION -> {
                 intent.extras?.let {
-                    showDetailsBottomSheet(it)
+                    val body = it.getString("body", "Body is empty")
+                    val packageName = it.getString("packageName", "none")
+                    val urls = it.getStringArrayList("urls")?.toList() ?: listOf()
+
+                    val details =  AttackDetails(body, packageName, urls)
+                    showDetailsBottomSheet(details)
                 }
 
             }
         }
     }
 
-    private fun showDetailsBottomSheet(extras: Bundle) {
-        val body = extras.getString("body", "Body is empty")
-        val packageName = extras.getString("packageName", "none")
-        val urls = extras.getStringArrayList("urls")?.toList()
+    private fun showDetailsBottomSheet(details: AttackDetails) {
         val sheet = BottomSheetDialog(this)
         val sheetView = AttackDetailsBottomSheetBinding.inflate(layoutInflater)
         sheet.behavior.peekHeight = 1000
 
+
+
         ImageLoader.getInstance().loadAppIcon(packageName, sheetView.ivAppIcon)
-        sheetView.tvBody.text = body
+        sheetView.tvBody.text = details.body
 
         sheetView.tvAppName.text = packageName
 
         try {
-            urls?.forEach { url ->
+            details.urls.forEach { url ->
                 val urlItem = UrlItemBinding.inflate(layoutInflater, sheetView.root, false)
                 urlItem.tvUrl.text = url
                 sheetView.listUrls.addView(urlItem.root)
             }
 
-            if(urls?.isNotEmpty() == true){
+            if(details.urls.isNotEmpty()){
                 sheetView.tvNoUrl.visibility = View.GONE
             }
         }

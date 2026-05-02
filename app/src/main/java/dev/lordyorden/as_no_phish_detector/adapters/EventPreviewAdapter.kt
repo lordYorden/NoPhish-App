@@ -7,10 +7,10 @@ import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.ItemRecentActivityBinding
 import dev.lordyorden.as_no_phish_detector.models.Event
 
-class EventAdapter(
+class EventPreviewAdapter(
     private val members: List<Event>,
     private val onMemberClick: (Event) -> Unit
-) : RecyclerView.Adapter<EventAdapter.EventViewHolder>() {
+) : RecyclerView.Adapter<EventPreviewAdapter.EventViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
         val binding = ItemRecentActivityBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -28,7 +28,7 @@ class EventAdapter(
             with(getItem(position)){
 
                 //TODO format real data
-                tvName.text = memberName
+                tvName.text = userId
                 tvAction.text = action
                 tvTime.text = root.context.getString(R.string.timestemp_temp)
             }

@@ -3,8 +3,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Event(
-    val memberName: String,
-    val eventTimestamp: Long,
     val action: String,
-    val moreDetails: String? = null
+    val timestamp: Double,
+    val userId: String,
+    val moreDetails: AttackDetails? = null
 )

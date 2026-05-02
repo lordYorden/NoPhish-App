@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.adapters.CircleAdapter
-import dev.lordyorden.as_no_phish_detector.adapters.EventAdapter
+import dev.lordyorden.as_no_phish_detector.adapters.EventPreviewAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
 import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBinding
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
@@ -67,12 +67,12 @@ class CircleFragment : Fragment() {
         }
 
         val recentList: List<Event> = listOf(
-            Event("yarden", 54556, "test"),
-            Event("itay", 54556, "test"),
-            Event("shay", 54556, "test")
+            Event("yarden", 54556.0, "test"),
+            Event("itay", 54556.0, "test"),
+            Event("shay", 54556.0, "test")
         )
 
-        val adapter = EventAdapter(recentList) { event ->
+        val adapter = EventPreviewAdapter(recentList) { event ->
             Log.d("CircleFragment", "event clicked $event")
         }
 

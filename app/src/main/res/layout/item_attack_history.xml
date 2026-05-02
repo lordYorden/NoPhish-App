@@ -39,7 +39,7 @@
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="10dp"
                 android:layout_toEndOf="@id/icon_bg"
                 android:orientation="vertical">
 
@@ -53,29 +53,31 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        tools:text="Bank SMS"
                         android:textColor="@color/on_background"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        tools:text="Bank SMS" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/tv_date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="Oct 24, 2:15 PM"
+                        android:ems="7"
                         android:textColor="@color/surface_text"
-                        android:textSize="12sp" />
+                        android:textSize="12sp"
+                        tools:text="Oct 24, 2:15 PM" />
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tv_desc"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:lineSpacingExtra="4dp"
-                    tools:text="Blocked a fake bank login link sent to your phone messaging app."
                     android:textColor="@color/on_surface"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    tools:text="Blocked a fake bank login link sent to your phone messaging app." />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_details"
@@ -83,7 +85,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    tools:text="View Details"
+                    android:text="View Details"
                     android:textAllCaps="false"
                     android:textColor="@color/primary"
                     app:icon="@drawable/ic_arrow_right"
