@@ -24,7 +24,6 @@ class EventAdapter(
         this.items = newList
 
         if (newItemsCount > 0) {
-            // Efficiently notify only the appended items
             notifyItemRangeChanged(oldSize, newItemsCount)
         }
         else{

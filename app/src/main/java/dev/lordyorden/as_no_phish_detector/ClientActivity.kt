@@ -176,17 +176,15 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         }
     }
 
-    private fun showDetailsBottomSheet(details: AttackDetails) {
+    fun showDetailsBottomSheet(details: AttackDetails) {
         val sheet = BottomSheetDialog(this)
         val sheetView = AttackDetailsBottomSheetBinding.inflate(layoutInflater)
         sheet.behavior.peekHeight = 1000
 
-
-
-        ImageLoader.getInstance().loadAppIcon(packageName, sheetView.ivAppIcon)
+        ImageLoader.getInstance().loadAppIcon(details.packageName, sheetView.ivAppIcon)
         sheetView.tvBody.text = details.body
 
-        sheetView.tvAppName.text = packageName
+        sheetView.tvAppName.text = details.packageName
 
         try {
             details.urls.forEach { url ->

@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentAttackHistoryBinding
 import dev.lordyorden.as_no_phish_detector.ui.events.EventAdapter
@@ -62,6 +63,9 @@ class AttackHistoryFragment : Fragment() {
     private fun setupRvResult() {
         adapter = EventAdapter{ event ->
             Log.d(TAG, "clicked on: $event")
+
+            val client = requireActivity() as ClientActivity
+            client.showDetailsBottomSheet(event.moreDetails!!)
         }
 
         binding.rvSearchResults.layoutManager = LinearLayoutManager(requireContext())
