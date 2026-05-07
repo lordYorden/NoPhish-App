@@ -73,6 +73,7 @@ class NotificationHelper private constructor(context: Context) {
             //.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_nophish_color))
             .setContentTitle(title)
             .setContentText(body)
+            .setAutoCancel(true)
 
         return notificationBuilder.build()
 
