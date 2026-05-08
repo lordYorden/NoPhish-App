@@ -28,4 +28,9 @@ class Constants {
         const val CIRCLE_CODE_KEY = "JoinCode"
         const val CIRCLE_ID_KEY = "circleId"
     }
+
+    object UploadScheduler {
+        const val TTL_MILLIS = 5 * 60 * 1000L
+        const val RETRY_INTERVAL_MILLIS = 5_000L
+    }
 }

@@ -6,5 +6,8 @@ data class Event(
     val action: String,
     val timestamp: Double,
     val userId: String,
-    val moreDetails: AttackDetails? = null
+    val circleId: String = "",
+    val eventId: String = "",
+    val contentHash: String = "",
+    val packageName: String? = null
 )

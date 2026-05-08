@@ -24,6 +24,7 @@ import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
+import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
 
 class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, EasyPermissions.PermissionCallbacks {
 
@@ -164,12 +165,26 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         when(intent.action) {
             FCMService.SHOW_DETAILS_ACTION -> {
                 intent.extras?.let {
-                    val body = it.getString("body", "Body is empty")
-                    val packageName = it.getString("packageName", "none")
-                    val urls = it.getStringArrayList("urls")?.toList() ?: listOf()
+                    val eventId = it.getString("eventId").orEmpty()
+                    val contentHash = it.getString("contentHash").orEmpty()
+                    val localDetails = if (eventId.isNotBlank() && contentHash.isNotBlank()) {
+                        MaliciousNotificationStore
+                            .getInstance()
+                            .getValidated(eventId, contentHash)
+                    } else {
+                        null
+                    }
 
-                    val details =  AttackDetails(body, packageName, urls)
-                    showDetailsBottomSheet(details)
+                    if (localDetails != null) {
+                        showDetailsBottomSheet(localDetails)
+                        return
+                    }
+
+                    Toast.makeText(
+                        this,
+                        "Details unavailable on this device",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
             }
