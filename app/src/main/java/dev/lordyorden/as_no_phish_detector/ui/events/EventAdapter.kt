@@ -47,14 +47,8 @@ class EventAdapter(
                 tvName.text = action
                 tvDate.text = formatTimestamp(timestamp.toLong())
 
-                moreDetails?.let {
-                    btnDetails.setTextColor(ContextCompat.getColor(root.context, R.color.primary))
-                    btnDetails.isEnabled = true
-
-                } ?: run {
-                    btnDetails.isEnabled = false
-                    btnDetails.setTextColor(ContextCompat.getColor(root.context, R.color.surface_text))
-                }
+                btnDetails.setTextColor(ContextCompat.getColor(root.context, R.color.primary))
+                btnDetails.isEnabled = true
             }
         }
     }

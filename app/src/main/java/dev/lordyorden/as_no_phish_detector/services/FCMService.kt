@@ -3,16 +3,26 @@ package dev.lordyorden.as_no_phish_detector.services
 import android.app.NotificationManager
 import android.content.Intent
 import android.util.Log
+import com.clerk.api.Clerk
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
+import dev.lordyorden.as_no_phish_detector.utilities.Constants
+import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
 import dev.lordyorden.as_no_phish_detector.utilities.NotificationHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class FCMService : FirebaseMessagingService() {
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
@@ -21,6 +31,10 @@ class FCMService : FirebaseMessagingService() {
         maliciousPayload?.let { payload ->
             MaliciousNotificationStore.getInstance().saveFromFcmPayload(payload)
             Log.i(TAG, "Stored malicious notification payload from FCM for eventId=${payload.eventId}")
+
+            serviceScope.launch {
+                registerMaliciousEventIfSource(payload)
+            }
         }
 
         message.notification?.let {
@@ -50,6 +64,11 @@ class FCMService : FirebaseMessagingService() {
         }
     }
 
+    override fun onDestroy() {
+        serviceScope.cancel()
+        super.onDestroy()
+    }
+
     private fun parseMaliciousInfoPayload(data: Map<String, String>): RelentNotificationInfo? {
         if (data.isEmpty()) return null
 
@@ -67,6 +86,7 @@ class FCMService : FirebaseMessagingService() {
         return RelentNotificationInfo(
             eventId = payload.requireString("eventId"),
             sourceUserId = payload.requireString("sourceUserId"),
+            circleId = payload.optionalString("circleId"),
             title = payload.optionalString("title"),
             body = payload.requireString("body"),
             packageName = payload.requireString("packageName"),
@@ -74,6 +94,55 @@ class FCMService : FirebaseMessagingService() {
             contentHash = payload.requireString("contentHash"),
             urls = payload.optionalStringList("urls")
         )
+    }
+
+    private suspend fun registerMaliciousEventIfSource(payload: RelentNotificationInfo) {
+        val currentUserId = Clerk.activeUser?.id
+        if (currentUserId.isNullOrBlank()) {
+            Log.w(TAG, "Skipping Convex malicious event upload: missing active user for eventId=${payload.eventId}")
+            return
+        }
+
+        if (currentUserId != payload.sourceUserId) {
+            Log.i(TAG, "Skipping Convex malicious event upload on receiving device for eventId=${payload.eventId}")
+            return
+        }
+
+        val circleId = payload.circleId?.takeIf { it.isNotBlank() } ?: getCurrentCircleId()
+        if (circleId.isNullOrBlank() || circleId == Constants.Onboarding.ACTION_GENERATE) {
+            Log.w(TAG, "Skipping Convex malicious event upload: missing circleId for eventId=${payload.eventId}")
+            return
+        }
+
+        val args = mutableMapOf<String, Any?>(
+            "circleId" to circleId,
+            "timestamp" to payload.timestamp.toDouble(),
+            "action" to "malicious notification",
+            "eventId" to payload.eventId,
+            "contentHash" to payload.contentHash,
+            //"sourceUserId" to payload.sourceUserId
+        )
+
+        payload.packageName.takeIf { it.isNotBlank() }?.let {
+            args["packageName"] = it
+        }
+
+        runCatching {
+            ConvexHelper.getInstance().convexClient.mutation<String>("events:register", args)
+        }.onSuccess {
+            Log.i(TAG, "Registered malicious notification metadata in Convex for eventId=${payload.eventId}")
+        }.onFailure { error ->
+            Log.e(TAG, "Failed to register malicious notification metadata in Convex", error)
+        }
+    }
+
+    private suspend fun getCurrentCircleId(): String? {
+        return runCatching {
+            ConvexHelper.getInstance().convexClient.mutation<String>("circles:get_my_circles")
+        }.getOrElse { error ->
+            Log.e(TAG, "Failed to resolve current circle for malicious event upload", error)
+            null
+        }
     }
 
     private fun Map<String, String>.requireString(fieldName: String): String {
