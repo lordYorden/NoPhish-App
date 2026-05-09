@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
@@ -25,6 +26,7 @@ import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
+import kotlinx.coroutines.launch
 
 class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
     EasyPermissions.PermissionCallbacks {
@@ -174,15 +176,17 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
                     val eventId = it.getString("eventId").orEmpty()
                     val contentHash = it.getString("contentHash").orEmpty()
 
-                    MaliciousNotificationStore.getInstance()
-                        .takeIf { eventId.isNotBlank() && contentHash.isNotBlank() }
-                        ?.getValidated(eventId, contentHash)
-                        ?.let { details -> showDetailsBottomSheet(details) }
-                        ?: Toast.makeText(
-                            this,
-                            "Details unavailable on this device",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    lifecycleScope.launch {
+                        MaliciousNotificationStore.getInstance()
+                            .takeIf { eventId.isNotBlank() && contentHash.isNotBlank() }
+                            ?.getValidated(eventId, contentHash)
+                            ?.let { details -> showDetailsBottomSheet(details) }
+                            ?: Toast.makeText(
+                                this@ClientActivity,
+                                "Details unavailable on this device",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                    }
                 }
 
             }

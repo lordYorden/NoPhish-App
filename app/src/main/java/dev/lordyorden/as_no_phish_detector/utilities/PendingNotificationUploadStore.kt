@@ -1,15 +1,23 @@
 package dev.lordyorden.as_no_phish_detector.utilities
 
 import android.content.Context
-import androidx.core.content.edit
+import androidx.datastore.core.DataStore
+import dev.lordyorden.as_no_phish_detector.datastore.CapturedNotificationPayloadRecord
+import dev.lordyorden.as_no_phish_detector.datastore.PendingNotificationUploadRecord
+import dev.lordyorden.as_no_phish_detector.datastore.PendingNotificationUploads
+import dev.lordyorden.as_no_phish_detector.models.CapturedNotificationPayload
 import dev.lordyorden.as_no_phish_detector.models.PendingNotificationUpload
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
+import dev.lordyorden.as_no_phish_detector.utilities.datastore.PendingNotificationUploadsSerializer
+import kotlinx.coroutines.flow.first
 
 class PendingNotificationUploadStore private constructor(context: Context) {
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val dataStore: DataStore<PendingNotificationUploads> = EncryptedDataStoreFactory.create(
+        context.applicationContext,
+        DATASTORE_FILE_NAME,
+        PendingNotificationUploadsSerializer
+    )
 
-    fun save(upload: PendingNotificationUpload) {
+    suspend fun save(upload: PendingNotificationUpload) {
         val uploads = loadAll()
             .filterNot { it.payload.eventId == upload.payload.eventId }
             .plus(upload)
@@ -17,7 +25,7 @@ class PendingNotificationUploadStore private constructor(context: Context) {
         saveAll(uploads)
     }
 
-    fun getUnexpired(now: Long = System.currentTimeMillis()): List<PendingNotificationUpload> {
+    suspend fun getUnexpired(now: Long = System.currentTimeMillis()): List<PendingNotificationUpload> {
         val uploads = loadAll()
         val unexpired = uploads.filter { now - it.createdAt <= Constants.UploadScheduler.TTL_MILLIS }
 
@@ -28,33 +36,63 @@ class PendingNotificationUploadStore private constructor(context: Context) {
         return unexpired
     }
 
-    fun remove(eventIds: Set<String>) {
+    suspend fun remove(eventIds: Set<String>) {
         if (eventIds.isEmpty()) return
 
         saveAll(loadAll().filterNot { eventIds.contains(it.payload.eventId) })
     }
 
-    private fun loadAll(): List<PendingNotificationUpload> {
-        val jsonString = prefs.getString(KEY_UPLOADS, null) ?: return emptyList()
-        return runCatching {
-            json.decodeFromString(ListSerializer(PendingNotificationUpload.serializer()), jsonString)
-        }.getOrDefault(emptyList())
+    private suspend fun loadAll(): List<PendingNotificationUpload> {
+        return dataStore.data.first().uploadsList.map { it.toModel() }
     }
 
-    private fun saveAll(uploads: List<PendingNotificationUpload>) {
-        prefs.edit {
-            putString(KEY_UPLOADS, json.encodeToString(uploads))
+    private suspend fun saveAll(uploads: List<PendingNotificationUpload>) {
+        dataStore.updateData { current ->
+            current.toBuilder()
+                .clearUploads()
+                .addAllUploads(uploads.map { it.toRecord() })
+                .build()
         }
+    }
+
+    private fun PendingNotificationUpload.toRecord(): PendingNotificationUploadRecord {
+        return PendingNotificationUploadRecord.newBuilder()
+            .setPayload(payload.toRecord())
+            .setCreatedAt(createdAt)
+            .build()
+    }
+
+    private fun CapturedNotificationPayload.toRecord(): CapturedNotificationPayloadRecord {
+        return CapturedNotificationPayloadRecord.newBuilder()
+            .setEventId(eventId)
+            .setTitle(title)
+            .setBody(body)
+            .setPackageName(packageName)
+            .setTimestamp(timestamp)
+            .addAllUrls(urls)
+            .build()
+    }
+
+    private fun PendingNotificationUploadRecord.toModel(): PendingNotificationUpload {
+        return PendingNotificationUpload(
+            payload = payload.toModel(),
+            createdAt = createdAt
+        )
+    }
+
+    private fun CapturedNotificationPayloadRecord.toModel(): CapturedNotificationPayload {
+        return CapturedNotificationPayload(
+            eventId = eventId,
+            title = title,
+            body = body,
+            packageName = packageName,
+            timestamp = timestamp,
+            urls = urlsList
+        )
     }
 
     companion object {
-        private const val PREFS_NAME = "pending_notification_upload_store"
-        private const val KEY_UPLOADS = "uploads"
-
-        private val json = Json {
-            encodeDefaults = true
-            explicitNulls = false
-        }
+        private const val DATASTORE_FILE_NAME = "pending_notification_uploads.pb"
 
         @Volatile
         private var instance: PendingNotificationUploadStore? = null

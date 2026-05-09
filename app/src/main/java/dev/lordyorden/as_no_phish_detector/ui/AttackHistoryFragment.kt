@@ -69,18 +69,20 @@ class AttackHistoryFragment : Fragment() {
         adapter = EventAdapter{ event ->
             Log.d(TAG, "clicked on: $event")
 
-            val details = localStore.getValidated(event.eventId, event.contentHash)
-            if (details == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "Details unavailable on this device",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@EventAdapter
-            }
+            viewLifecycleOwner.lifecycleScope.launch {
+                val details = localStore.getValidated(event.eventId, event.contentHash)
+                if (details == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Details unavailable on this device",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
 
-            val client = requireActivity() as ClientActivity
-            client.showDetailsBottomSheet(details)
+                val client = requireActivity() as ClientActivity
+                client.showDetailsBottomSheet(details)
+            }
         }
 
         binding.rvSearchResults.layoutManager = LinearLayoutManager(requireContext())

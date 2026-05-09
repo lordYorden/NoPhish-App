@@ -29,10 +29,9 @@ class FCMService : FirebaseMessagingService() {
         val maliciousPayload = parseMaliciousInfoPayload(message.data)
 
         maliciousPayload?.let { payload ->
-            MaliciousNotificationStore.getInstance().saveFromFcmPayload(payload)
-            Log.i(TAG, "Stored malicious notification payload from FCM for eventId=${payload.eventId}")
-
             serviceScope.launch {
+                MaliciousNotificationStore.getInstance().saveFromFcmPayload(payload)
+                Log.i(TAG, "Stored malicious notification payload from FCM for eventId=${payload.eventId}")
                 registerMaliciousEventIfSource(payload)
             }
         }
