@@ -30,6 +30,8 @@ import dev.lordyorden.as_no_phish_detector.utilities.SecureNotificationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 
@@ -43,6 +45,7 @@ class UploadForegroundService : LifecycleService() {
     private val notificationController: NotificationController = NotificationController()
     private lateinit var pendingUploadStore: PendingNotificationUploadStore
     private var retryPendingUploadsJob: Job? = null
+    private val flushMutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
@@ -180,7 +183,7 @@ class UploadForegroundService : LifecycleService() {
             while (true) {
                 flushPendingUploads()
 
-                if (pendingUploadStore.getUnexpired().isEmpty()) {
+                if (pendingUploadStore.getPendingUploads().isEmpty()) {
                     return@launch
                 }
 
@@ -190,21 +193,24 @@ class UploadForegroundService : LifecycleService() {
     }
 
     private suspend fun flushPendingUploads() {
-        val sourceUserId = Clerk.activeUser?.id
-        if (sourceUserId.isNullOrBlank()) {
-            pendingUploadStore.getUnexpired()
-            return
-        }
+        flushMutex.withLock {
+            pendingUploadStore.removeExpired()
 
-        val uploadedEventIds = mutableSetOf<String>()
-
-        pendingUploadStore.getUnexpired().forEach { pendingUpload ->
-            if (uploadNotification(pendingUpload, sourceUserId)) {
-                uploadedEventIds.add(pendingUpload.payload.eventId)
+            val sourceUserId = Clerk.activeUser?.id
+            if (sourceUserId.isNullOrBlank()) {
+                return@withLock
             }
-        }
 
-        pendingUploadStore.remove(uploadedEventIds)
+            val uploadedEventIds = mutableSetOf<String>()
+
+            pendingUploadStore.getPendingUploads().forEach { pendingUpload ->
+                if (uploadNotification(pendingUpload, sourceUserId)) {
+                    uploadedEventIds.add(pendingUpload.payload.eventId)
+                }
+            }
+
+            pendingUploadStore.remove(uploadedEventIds)
+        }
     }
 
     private suspend fun uploadNotification(
@@ -235,9 +241,13 @@ class UploadForegroundService : LifecycleService() {
 
         return try {
             //notificationController.apiService.uploadNotification(notif)
-            notificationController.apiService.uploadRelInfo(rel)
+            val response = notificationController.apiService.uploadRelInfo(rel)
+            if (!response.isSuccessful) {
+                Log.e(TAG, "upload failed with HTTP ${response.code()} for event: ${rel.eventId}")
+                return false
+            }
 
-            Log.i(TAG, "uploaded notification $rel")
+            Log.i(TAG, "uploaded notification event: ${rel.eventId}")
             true
         } catch (e: Exception) {
             Log.e(TAG, "upload failed: $e")

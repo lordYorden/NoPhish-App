@@ -25,15 +25,12 @@ class PendingNotificationUploadStore private constructor(context: Context) {
         saveAll(uploads)
     }
 
-    suspend fun getUnexpired(now: Long = System.currentTimeMillis()): List<PendingNotificationUpload> {
-        val uploads = loadAll()
-        val unexpired = uploads.filter { now - it.createdAt <= Constants.UploadScheduler.TTL_MILLIS }
+    suspend fun getPendingUploads(): List<PendingNotificationUpload> {
+        return loadAll()
+    }
 
-        if (unexpired.size != uploads.size) {
-            saveAll(unexpired)
-        }
-
-        return unexpired
+    suspend fun removeExpired(now: Long = System.currentTimeMillis()) {
+        saveAll(loadAll().filter { now - it.createdAt <= Constants.UploadScheduler.TTL_MILLIS })
     }
 
     suspend fun remove(eventIds: Set<String>) {
