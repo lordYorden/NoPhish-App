@@ -26,6 +26,10 @@ export const register = mutation({
       .first();
 
     if (existingEvent) {
+        if(existingEvent.circleId != args.circleId){
+            throw new Error("unauthorized eventId")
+        }
+
       return existingEvent._id;
     }
 
