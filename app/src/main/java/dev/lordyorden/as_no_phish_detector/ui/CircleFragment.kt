@@ -67,9 +67,9 @@ class CircleFragment : Fragment() {
         }
 
         val recentList: List<Event> = listOf(
-            Event("yarden", 54556.0, "test"),
-            Event("itay", 54556.0, "test"),
-            Event("shay", 54556.0, "test")
+            Event("yarden", 54556.0, "test", "circle-demo", "event-demo-1", "hash-demo-1"),
+            Event("itay", 54556.0, "test", "circle-demo", "event-demo-2", "hash-demo-2"),
+            Event("shay", 54556.0, "test", "circle-demo", "event-demo-3", "hash-demo-3")
         )
 
         val adapter = EventPreviewAdapter(recentList) { event ->

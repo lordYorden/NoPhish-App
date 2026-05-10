@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.datastore.tink)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.protobuf.kotlin.lite)
     implementation(libs.tink.android)
     testImplementation(libs.junit)
