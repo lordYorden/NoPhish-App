@@ -16,7 +16,10 @@ class RegisterMaliciousEventWorker(
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
         val payloadJson = inputData.getString(KEY_PAYLOAD_JSON)
-            ?: throw IllegalArgumentException("Missing required worker input: $KEY_PAYLOAD_JSON")
+            ?: run {
+                Log.e(TAG, "Missing required worker input: $KEY_PAYLOAD_JSON")
+                return Result.failure()
+            }
 
         val payload = runCatching {
             MaliciousNotificationPayloadParser.parse(payloadJson)

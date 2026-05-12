@@ -23,7 +23,11 @@ class FCMService : FirebaseMessagingService() {
         super.onMessageReceived(message)
         Log.i(TAG, "Received FCM message with data keys=${message.data.keys} notification=${message.notification != null}")
 
-        val maliciousPayloadJson = getMaliciousPayloadJson(message.data) ?: return
+        val maliciousPayloadJson = getMaliciousPayloadJson(message.data) ?: run {
+            Log.e(TAG, "No payload was found")
+            return
+        }
+
         val maliciousPayload = parseMaliciousInfoPayload(maliciousPayloadJson)
 
         maliciousPayload?.let { payload ->
@@ -78,13 +82,7 @@ class FCMService : FirebaseMessagingService() {
     private fun getMaliciousPayloadJson(data: Map<String, String>): String? {
         if (data.isEmpty()) return null
 
-        return data.requireString("data")
-    }
-
-    private fun Map<String, String>.requireString(fieldName: String): String {
-        return this[fieldName]
-            ?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("Missing required field: $fieldName")
+        return data["data"]?.takeIf { it.isNotBlank() }
     }
 
     private fun enqueueMaliciousEventRegistration(payloadJson: String, eventId: String) {
