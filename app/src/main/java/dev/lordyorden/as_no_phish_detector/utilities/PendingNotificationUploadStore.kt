@@ -18,11 +18,13 @@ class PendingNotificationUploadStore private constructor(context: Context) {
     )
 
     suspend fun save(upload: PendingNotificationUpload) {
-        val uploads = loadAll()
-            .filterNot { it.payload.eventId == upload.payload.eventId }
-            .plus(upload)
+        val uploadRecord = upload.toRecord()
 
-        saveAll(uploads)
+        updateUploads { uploads ->
+            uploads
+                .filterNot { it.payload.eventId == upload.payload.eventId }
+                .plus(uploadRecord)
+        }
     }
 
     suspend fun getPendingUploads(): List<PendingNotificationUpload> {
@@ -30,26 +32,38 @@ class PendingNotificationUploadStore private constructor(context: Context) {
     }
 
     suspend fun removeExpired(now: Long = System.currentTimeMillis()) {
-        saveAll(loadAll().filter { now - it.createdAt <= Constants.UploadScheduler.TTL_MILLIS })
+        updateUploads { uploads ->
+            uploads.filter { now - it.createdAt <= Constants.UploadScheduler.TTL_MILLIS }
+        }
     }
 
     suspend fun remove(eventIds: Set<String>) {
         if (eventIds.isEmpty()) return
 
-        saveAll(loadAll().filterNot { eventIds.contains(it.payload.eventId) })
+        updateUploads { uploads ->
+            uploads.filterNot { eventIds.contains(it.payload.eventId) }
+        }
     }
 
     private suspend fun loadAll(): List<PendingNotificationUpload> {
         return dataStore.data.first().uploadsList.map { it.toModel() }
     }
 
-    private suspend fun saveAll(uploads: List<PendingNotificationUpload>) {
+    private suspend fun updateUploads(
+        transform: (List<PendingNotificationUploadRecord>) -> List<PendingNotificationUploadRecord>
+    ) {
         dataStore.updateData { current ->
-            current.toBuilder()
-                .clearUploads()
-                .addAllUploads(uploads.map { it.toRecord() })
-                .build()
+            current.withUploads(transform(current.uploadsList))
         }
+    }
+
+    private fun PendingNotificationUploads.withUploads(
+        uploads: List<PendingNotificationUploadRecord>
+    ): PendingNotificationUploads {
+        return toBuilder()
+            .clearUploads()
+            .addAllUploads(uploads)
+            .build()
     }
 
     private fun PendingNotificationUpload.toRecord(): PendingNotificationUploadRecord {
