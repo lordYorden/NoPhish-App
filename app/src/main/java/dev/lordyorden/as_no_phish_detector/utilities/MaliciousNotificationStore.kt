@@ -22,7 +22,8 @@ class MaliciousNotificationStore private constructor(context: Context) {
     }
 
     suspend fun save(details: AttackDetails) {
-        if (details.eventId.isBlank()) return
+
+        require(details.eventId.isNotBlank()) { "eventId must not be blank" }
 
         dataStore.updateData { current ->
             current.toBuilder()
