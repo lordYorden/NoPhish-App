@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
@@ -24,8 +25,11 @@ import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
+import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
+import kotlinx.coroutines.launch
 
-class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, EasyPermissions.PermissionCallbacks {
+class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
+    EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityClientBinding
     private val permsViewModel: PermsViewModel by viewModels()
@@ -47,25 +51,28 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         setupFCM()
 
         binding.toolbar.setOnMenuItemClickListener { item ->
-            when(item.itemId){
+            when (item.itemId) {
                 R.id.action_settings -> {
                     navController.navigate(R.id.to_settings)
                 }
+
                 else -> super.onOptionsItemSelected(item)
             }
             true
         }
 
-        navController.addOnDestinationChangedListener(object : NavController.OnDestinationChangedListener {
+        navController.addOnDestinationChangedListener(object :
+            NavController.OnDestinationChangedListener {
             override fun onDestinationChanged(
                 controller: NavController,
                 destination: NavDestination,
                 arguments: SavedState?
             ) {
-                when(destination.id) {
+                when (destination.id) {
                     R.id.nev_history -> {
                         binding.toolbar.visibility = View.GONE
                     }
+
                     else -> {
                         binding.toolbar.visibility = View.VISIBLE
                     }
@@ -90,7 +97,8 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
     private fun setupNav() {
         val navView = binding.navView
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_client) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_client) as NavHostFragment
         navController = navHostFragment.navController
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -151,6 +159,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
         Toast.makeText(this, "rel denied $requestCode", Toast.LENGTH_SHORT).show()
         //permsViewModel.setRejected(requestCode)
     }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -161,15 +170,23 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
     private fun handleIntent(intent: Intent) {
         Log.e("intent client", "checking action")
 
-        when(intent.action) {
+        when (intent.action) {
             FCMService.SHOW_DETAILS_ACTION -> {
                 intent.extras?.let {
-                    val body = it.getString("body", "Body is empty")
-                    val packageName = it.getString("packageName", "none")
-                    val urls = it.getStringArrayList("urls")?.toList() ?: listOf()
+                    val eventId = it.getString("eventId").orEmpty()
+                    val contentHash = it.getString("contentHash").orEmpty()
 
-                    val details =  AttackDetails(body, packageName, urls)
-                    showDetailsBottomSheet(details)
+                    lifecycleScope.launch {
+                        MaliciousNotificationStore.getInstance()
+                            .takeIf { eventId.isNotBlank() && contentHash.isNotBlank() }
+                            ?.getValidated(eventId, contentHash)
+                            ?.let { details -> showDetailsBottomSheet(details) }
+                            ?: Toast.makeText(
+                                this@ClientActivity,
+                                "Details unavailable on this device",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                    }
                 }
 
             }
@@ -193,11 +210,10 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks, 
                 sheetView.listUrls.addView(urlItem.root)
             }
 
-            if(details.urls.isNotEmpty()){
+            if (details.urls.isNotEmpty()) {
                 sheetView.tvNoUrl.visibility = View.GONE
             }
-        }
-        catch(e: NoSuchElementException){
+        } catch (e: NoSuchElementException) {
             sheetView.tvNoUrl.visibility = View.VISIBLE
         }
 

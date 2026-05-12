@@ -88,4 +88,5 @@
     <string name="chip_time_text">All Time</string>
     <string name="search_hint">Find a recent attack</string>
     <string name="zero_result">0 result</string>
+    <string name="view_details">View Details</string>
 </resources>

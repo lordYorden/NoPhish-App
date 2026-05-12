@@ -57,15 +57,17 @@ class EventViewModel : ViewModel() {
 
                 Log.d(TAG, "startTime is: $timestamp")
 
+                val args = mutableMapOf<String, Any?>(
+                    "paginationOpts" to mapOf(
+                        "cursor" to currentCursor,
+                        "numItems" to 4f
+                    ),
+                    "startTime" to timestamp
+                )
+
                 val res = client.mutation<PaginationResult<Event>>(
                     "events:get",
-                    mutableMapOf(
-                        "paginationOpts" to mapOf(
-                            "cursor" to currentCursor,
-                            "numItems" to 4f
-                        ),
-                        "startTime" to timestamp
-                    )
+                    args
                 )
 
                 _events.value += res.page

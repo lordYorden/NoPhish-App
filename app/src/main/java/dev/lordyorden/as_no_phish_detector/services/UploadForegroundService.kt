@@ -16,13 +16,23 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.clerk.api.Clerk
 import dev.lordyorden.as_no_phish_detector.MainActivity
 import dev.lordyorden.as_no_phish_detector.R
+import dev.lordyorden.as_no_phish_detector.models.CapturedNotificationPayload
+import dev.lordyorden.as_no_phish_detector.models.PendingNotificationUpload
 import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
 import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
 import dev.lordyorden.as_no_phish_detector.retrofit.SmsController
+import dev.lordyorden.as_no_phish_detector.utilities.Constants
+import dev.lordyorden.as_no_phish_detector.utilities.PendingNotificationUploadStore
+import dev.lordyorden.as_no_phish_detector.utilities.SecureNotificationHelper
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.security.MessageDigest
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.UUID
 
 
 class UploadForegroundService : LifecycleService() {
@@ -33,10 +43,16 @@ class UploadForegroundService : LifecycleService() {
     private var lastShownNotificationId = -1
     private val smsController: SmsController = SmsController()
     private val notificationController: NotificationController = NotificationController()
+    private lateinit var pendingUploadStore: PendingNotificationUploadStore
+    private var retryPendingUploadsJob: Job? = null
+    private val flushMutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "onCreate: created()")
+
+        pendingUploadStore = PendingNotificationUploadStore.getInstance(this)
+        schedulePendingUploadRetry()
 
         lifecycleScope.launch {
             MessageBridge.messageFlow.collect { bundle ->
@@ -58,6 +74,10 @@ class UploadForegroundService : LifecycleService() {
                 notifyToUserForForegroundService()
             }
 
+            lifecycleScope.launch {
+                flushPendingUploads()
+            }
+
         } else if (action == ACTION_STOP) {
             stopHandlingMassages()
             isServiceRunningRightNow = false
@@ -69,6 +89,7 @@ class UploadForegroundService : LifecycleService() {
 
     private suspend fun handleNewMessage(message: Bundle){
         //Log.d(TAG, "startRecording() + " + Thread.currentThread().name)
+        flushPendingUploads()
 
         val isSMS = message.getBoolean("isSMS", true)
 
@@ -98,6 +119,27 @@ class UploadForegroundService : LifecycleService() {
             val packageName = message.getString("packageName", "none")
             val timestamp = message.getLong("timestamp", 0L)
             val urls = message.getStringArrayList("urls")?.toList() ?: listOf<String>()
+            val payload = CapturedNotificationPayload(
+                eventId = UUID.randomUUID().toString(),
+                title = title,
+                body = body,
+                packageName = packageName,
+                timestamp = timestamp,
+                urls = urls
+            )
+            val sourceUserId = Clerk.activeUser?.id
+
+            if (sourceUserId.isNullOrBlank()) {
+                pendingUploadStore.save(
+                    PendingNotificationUpload(
+                        payload = payload,
+                        createdAt = System.currentTimeMillis()
+                    )
+                )
+                schedulePendingUploadRetry()
+                Log.w(TAG, "Queued notification upload until Clerk user state is available")
+                return
+            }
 
 /*            val notif = CreateNotification(
                 title,
@@ -107,26 +149,13 @@ class UploadForegroundService : LifecycleService() {
                 packageName,
                 timestamp)*/
 
-            val hash = buildString {
-                append(body.toSha256())
-                append(timestamp)
-                append(packageName) }.toSha256()
-
-            val rel = RelentNotificationInfo(
-                body,
-                packageName,
-                hash,
-                urls
+            uploadNotification(
+                PendingNotificationUpload(
+                    payload = payload,
+                    createdAt = System.currentTimeMillis()
+                ),
+                sourceUserId
             )
-
-            try {
-                //notificationController.apiService.uploadNotification(notif)
-                notificationController.apiService.uploadRelInfo(rel)
-
-                Log.i(TAG, "uploaded notification $rel")
-            } catch (e: Exception) {
-                Log.e(TAG, "upload failed: $e")
-            }
         }
 
 
@@ -136,22 +165,94 @@ class UploadForegroundService : LifecycleService() {
         wakeLock.acquire(10*60*1000L)s*/
     }
 
-    private fun String.toSha256(): String {
-        val bytes = this.toByteArray()
-        val md = MessageDigest.getInstance("SHA-256")
-        val digest = md.digest(bytes)
-
-        // Convert bytes to a hex string
-        return digest.joinToString("") { "%02x".format(it) }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
+        retryPendingUploadsJob?.cancel()
     }
 
     private fun stopHandlingMassages(){
         //wakeLock.release();
+        retryPendingUploadsJob?.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
+    }
+
+    private fun schedulePendingUploadRetry() {
+        if (retryPendingUploadsJob?.isActive == true) return
+
+        retryPendingUploadsJob = lifecycleScope.launch {
+            while (true) {
+                flushPendingUploads()
+
+                if (pendingUploadStore.getPendingUploads().isEmpty()) {
+                    return@launch
+                }
+
+                delay(Constants.UploadScheduler.RETRY_INTERVAL_MILLIS)
+            }
+        }
+    }
+
+    private suspend fun flushPendingUploads() {
+        flushMutex.withLock {
+            pendingUploadStore.removeExpired()
+
+            val sourceUserId = Clerk.activeUser?.id
+            if (sourceUserId.isNullOrBlank()) {
+                return@withLock
+            }
+
+            val uploadedEventIds = mutableSetOf<String>()
+
+            pendingUploadStore.getPendingUploads().forEach { pendingUpload ->
+                if (uploadNotification(pendingUpload, sourceUserId)) {
+                    uploadedEventIds.add(pendingUpload.payload.eventId)
+                }
+            }
+
+            pendingUploadStore.remove(uploadedEventIds)
+        }
+    }
+
+    private suspend fun uploadNotification(
+        upload: PendingNotificationUpload,
+        sourceUserId: String
+    ): Boolean {
+        val payload = upload.payload
+        val contentHash = SecureNotificationHelper.contentHash(
+            eventId = payload.eventId,
+            title = payload.title,
+            body = payload.body,
+            packageName = payload.packageName,
+            urls = payload.urls,
+            notificationTimestamp = payload.timestamp,
+            sourceUserId = sourceUserId
+        )
+
+        val rel = RelentNotificationInfo(
+            eventId = payload.eventId,
+            sourceUserId = sourceUserId,
+            title = payload.title,
+            body = payload.body,
+            packageName = payload.packageName,
+            timestamp = payload.timestamp,
+            contentHash = contentHash,
+            urls = payload.urls
+        )
+
+        return try {
+            //notificationController.apiService.uploadNotification(notif)
+            val response = notificationController.apiService.uploadRelInfo(rel)
+            if (!response.isSuccessful) {
+                Log.e(TAG, "upload failed with HTTP ${response.code()} for event: ${rel.eventId}")
+                return false
+            }
+
+            Log.i(TAG, "uploaded notification event: ${rel.eventId}")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "upload failed: $e")
+            false
+        }
     }
 
     /*@OptIn(DelicateCoroutinesApi::class)

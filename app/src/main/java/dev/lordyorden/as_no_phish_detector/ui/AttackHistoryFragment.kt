@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +16,7 @@ import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentAttackHistoryBinding
 import dev.lordyorden.as_no_phish_detector.ui.events.EventAdapter
 import dev.lordyorden.as_no_phish_detector.ui.events.EventViewModel
+import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -24,6 +26,7 @@ class AttackHistoryFragment : Fragment() {
     private lateinit var binding: FragmentAttackHistoryBinding
     private lateinit var adapter: EventAdapter
     private val viewModel: EventViewModel by viewModels()
+    private lateinit var localStore: MaliciousNotificationStore
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,6 +41,8 @@ class AttackHistoryFragment : Fragment() {
     private fun initViews() {
 
         with(binding){
+            localStore = MaliciousNotificationStore.getInstance()
+
             tvResultCount.text = getString(R.string.zero_result)
 
             chipGroupFilter.setOnCheckedStateChangeListener { chipGroup, _ ->
@@ -64,8 +69,20 @@ class AttackHistoryFragment : Fragment() {
         adapter = EventAdapter{ event ->
             Log.d(TAG, "clicked on: $event")
 
-            val client = requireActivity() as ClientActivity
-            client.showDetailsBottomSheet(event.moreDetails!!)
+            viewLifecycleOwner.lifecycleScope.launch {
+                val details = localStore.getValidated(event.eventId, event.contentHash)
+                if (details == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Details unavailable on this device",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                val client = requireActivity() as ClientActivity
+                client.showDetailsBottomSheet(details)
+            }
         }
 
         binding.rvSearchResults.layoutManager = LinearLayoutManager(requireContext())

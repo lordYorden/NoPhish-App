@@ -34,13 +34,14 @@ export default defineSchema({
 
     event: defineTable({
         userId: v.string(),
+        circleId: v.string(),
         timestamp: v.number(),
         action: v.string(),
-        moreDetails: v.optional(v.object({
-            body: v.string(),
-            packageName: v.string(),
-            urls: v.array(v.string()),
-        }))
+        eventId: v.string(),
+        contentHash: v.string(),
+        packageName: v.optional(v.string()),
     })
     .index("byDate", ["timestamp"])
+    .index("byCircleAndDate", ["circleId", "timestamp"])
+    .index("byEventId", ["eventId"])
 })

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package dev.lordyorden.as_no_phish_detector.datastore;
+
+option java_package = "dev.lordyorden.as_no_phish_detector.datastore";
+option java_multiple_files = true;
+
+message CapturedNotificationPayloadRecord {
+  string event_id = 1;
+  string title = 2;
+  string body = 3;
+  string package_name = 4;
+  int64 timestamp = 5;
+  repeated string urls = 6;
+}
+
+message PendingNotificationUploadRecord {
+  CapturedNotificationPayloadRecord payload = 1;
+  int64 created_at = 2;
+}
+
+message PendingNotificationUploads {
+  repeated PendingNotificationUploadRecord uploads = 1;
+  bool legacy_migration_complete = 2;
+}
+
+message AttackDetailsRecord {
+  string event_id = 1;
+  string source_user_id = 2;
+  string title = 3;
+  string body = 4;
+  string package_name = 5;
+  int64 notification_timestamp = 6;
+  string content_hash = 7;
+  int64 received_at = 8;
+  repeated string urls = 9;
+}
+
+message MaliciousNotificationDetails {
+  repeated AttackDetailsRecord details = 1;
+  bool legacy_migration_complete = 2;
+}
