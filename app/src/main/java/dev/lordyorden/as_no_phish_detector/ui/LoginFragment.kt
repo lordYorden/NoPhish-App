@@ -62,11 +62,13 @@ class LoginFragment : Fragment() {
                     UserUiState.Loading -> {
                         binding.btnGoogle.alpha = 0.65f
                         binding.btnGoogle.isEnabled = false
+                        binding.loading.visibility = View.VISIBLE
                     }
 
                     else -> {
                         binding.btnGoogle.alpha = 1f
                         binding.btnGoogle.isEnabled = true
+                        binding.loading.visibility = View.GONE
                     }
                 }
             }
