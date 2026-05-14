@@ -89,4 +89,10 @@
     <string name="search_hint">Find a recent attack</string>
     <string name="zero_result">0 result</string>
     <string name="view_details">View Details</string>
+    <string name="history_loading">Loading history…</string>
+    <string name="history_loading_more">Loading more history…</string>
+    <string name="history_end">You have reached the end of your history</string>
+    <string name="history_empty">No history events found</string>
+    <string name="history_error">Could not load history</string>
+    <string name="retry">Retry</string>
 </resources>

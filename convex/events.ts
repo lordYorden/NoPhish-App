@@ -45,7 +45,7 @@ export const register = mutation({
   },
 });
 
-export const get = mutation({
+export const get = query({
   args: {
     startTime: v.optional(v.number()),
     paginationOpts: paginationOptsValidator,
