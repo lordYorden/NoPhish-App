@@ -95,4 +95,5 @@
     <string name="history_empty">No history events found</string>
     <string name="history_error">Could not load history</string>
     <string name="retry">Retry</string>
+    <string name="msg_unavailable_event">Details unavailable on this device</string>
 </resources>

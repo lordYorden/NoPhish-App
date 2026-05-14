@@ -79,7 +79,7 @@ class AttackHistoryFragment : Fragment() {
                     if (details == null) {
                         Toast.makeText(
                             requireContext(),
-                            "Details unavailable on this device",
+                            getString(R.string.msg_unavailable_event),
                             Toast.LENGTH_SHORT
                         ).show()
                         return@launch
