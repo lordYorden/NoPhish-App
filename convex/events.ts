@@ -72,7 +72,7 @@ export const get = query({
 });
 
 
-export const get_by_circle = mutation({
+export const get_by_circle = query({
   args: {
     circleId: v.string(),
     startTime: v.optional(v.number()),

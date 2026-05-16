@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -14,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.adapters.CircleAdapter
 import dev.lordyorden.as_no_phish_detector.adapters.EventPreviewAdapter
@@ -21,8 +24,10 @@ import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
 import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBinding
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Event
+import dev.lordyorden.as_no_phish_detector.models.PaginationResult
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
+import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
 import kotlinx.coroutines.launch
 
 class CircleFragment : Fragment() {
@@ -30,6 +35,8 @@ class CircleFragment : Fragment() {
     private lateinit var binding: FragmentCircleBinding
     private lateinit var recentBinding: SectionRecentActivityBinding
     private val circleMembers: MutableList<CircleMember> = mutableListOf()
+    private lateinit var eventPreviewAdapter: EventPreviewAdapter
+    private lateinit var localStore: MaliciousNotificationStore
 
     private lateinit var circleId: String
 
@@ -45,6 +52,7 @@ class CircleFragment : Fragment() {
 
     private fun initViews() {
 
+        localStore = MaliciousNotificationStore.getInstance()
         getCircleId()
         setupBottomSheet()
         setUpRecentActivity()
@@ -66,17 +74,38 @@ class CircleFragment : Fragment() {
             orientation = RecyclerView.HORIZONTAL
         }
 
-        val recentList: List<Event> = listOf(
-            Event("yarden", 54556.0, "test", "circle-demo", "event-demo-1", "hash-demo-1"),
-            Event("itay", 54556.0, "test", "circle-demo", "event-demo-2", "hash-demo-2"),
-            Event("shay", 54556.0, "test", "circle-demo", "event-demo-3", "hash-demo-3")
-        )
+        eventPreviewAdapter = EventPreviewAdapter { event ->
+            Log.d(TAG, "event clicked $event")
+            viewLifecycleOwner.lifecycleScope.launch {
+                val details = localStore.getValidated(event.eventId, event.contentHash)
+                if (details == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.msg_unavailable_event),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
 
-        val adapter = EventPreviewAdapter(recentList) { event ->
-            Log.d("CircleFragment", "event clicked $event")
+                val client = requireActivity() as ClientActivity
+                client.showDetailsBottomSheet(details)
+            }
         }
 
-        recentBinding.rvEvents.adapter = adapter
+        recentBinding.rvEvents.adapter = eventPreviewAdapter
+        recentBinding.tvViewAll.setOnClickListener {
+            val bundle = Bundle().apply {
+                putString(Constants.Circle.CIRCLE_ID_KEY, circleId)
+            }
+
+            findNavController().navigate(R.id.action_nev_circle_to_circle_events, bundle)
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                getRecentCircleEvents()
+            }
+        }
     }
 
     private fun setupBottomSheet() {
@@ -130,6 +159,32 @@ class CircleFragment : Fragment() {
                 }
             }.onFailure { error ->
                 Log.e(TAG, "Failed to fetch members", error)
+            }
+        }
+    }
+
+    private suspend fun getRecentCircleEvents() {
+        val client = ConvexHelper.getInstance().convexClient
+        val args = mapOf(
+            "circleId" to circleId,
+            "paginationOpts" to mapOf(
+                "cursor" to null,
+                "numItems" to 5f
+            )
+        )
+
+        client.subscribe<PaginationResult<Event>>("events:get_by_circle", args).collect { result ->
+            result.onSuccess { page ->
+                eventPreviewAdapter.submitList(page.page)
+                recentBinding.rvEvents.isVisible = page.page.isNotEmpty()
+                recentBinding.tvRecentEmpty.isVisible = page.page.isEmpty()
+                recentBinding.tvRecentEmpty.text = getString(R.string.circle_events_empty)
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to fetch recent circle events", error)
+                eventPreviewAdapter.submitList(emptyList())
+                recentBinding.rvEvents.isVisible = false
+                recentBinding.tvRecentEmpty.isVisible = true
+                recentBinding.tvRecentEmpty.text = getString(R.string.circle_events_error)
             }
         }
     }
