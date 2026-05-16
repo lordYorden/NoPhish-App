@@ -16,10 +16,12 @@ class HistoryScreenRenderer(
 
     fun render(state: HistoryUiState) {
         val surfaceState = HistorySurfaceState.from(state)
+        val layoutManager = binding.rvSearchResults.layoutManager as LinearLayoutManager
+        val anchor = currentAnchor(layoutManager)
 
         renderSurfaceState(surfaceState)
         renderRows(state)
-        preserveAnchorIfNeeded(state)
+        preserveAnchorIfNeeded(state, layoutManager, anchor)
         renderResultCount(state.events.size)
 
         previousEvents = state.events
@@ -51,10 +53,12 @@ class HistoryScreenRenderer(
         )
     }
 
-    private fun preserveAnchorIfNeeded(state: HistoryUiState) {
-        val layoutManager = binding.rvSearchResults.layoutManager as LinearLayoutManager
-        val anchor = currentAnchor(layoutManager) ?: return
-
+    private fun preserveAnchorIfNeeded(
+        state: HistoryUiState,
+        layoutManager: LinearLayoutManager,
+        anchor: ScrollAnchor?,
+    ) {
+        anchor ?: return
         if (state.loading != HistoryLoading.Idle || anchor.position == 0) return
 
         val newPosition = state.events.indexOfFirst { it.eventId == anchor.eventId }
