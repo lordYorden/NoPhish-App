@@ -183,7 +183,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
                             ?.let { details -> showDetailsBottomSheet(details) }
                             ?: Toast.makeText(
                                 this@ClientActivity,
-                                "Details unavailable on this device",
+                                getString(R.string.msg_unavailable_event),
                                 Toast.LENGTH_SHORT
                             ).show()
                     }

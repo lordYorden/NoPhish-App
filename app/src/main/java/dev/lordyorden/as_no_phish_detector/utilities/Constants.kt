@@ -33,4 +33,8 @@ class Constants {
         const val TTL_MILLIS = 5 * 60 * 1000L
         const val RETRY_INTERVAL_MILLIS = 5_000L
     }
+
+    object HistoryPagination {
+        const val PAGE_SIZE = 10
+    }
 }
