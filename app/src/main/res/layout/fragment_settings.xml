@@ -16,7 +16,7 @@
         android:id="@+id/lbl_title"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="40dp"
-        android:fontFamily="@font/noto_serif"
+        android:fontFamily="@font/plus_jakarta_sans"
         android:textColor="@color/primary"
         android:textStyle="bold"
         android:textSize="30sp"/>

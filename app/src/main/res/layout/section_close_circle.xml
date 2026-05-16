@@ -28,7 +28,7 @@
             android:layout_weight="1"
             android:text="@string/your_close_circle"
             android:textColor="@color/primary"
-            android:fontFamily="@font/noto_serif"
+            android:fontFamily="@font/plus_jakarta_sans"
             android:textSize="18sp"
             android:textStyle="bold" />
 

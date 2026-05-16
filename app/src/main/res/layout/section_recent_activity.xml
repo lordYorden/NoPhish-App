@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:fontFamily="@font/noto_serif"
+        android:fontFamily="@font/plus_jakarta_sans"
         android:text="@string/recent_activity"
         android:textColor="@color/primary"
         android:textSize="22sp"

@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="@string/you_are_protected"
-        android:fontFamily="@font/noto_serif"
+        android:fontFamily="@font/plus_jakarta_sans"
         android:textSize="24sp"
         android:textColor="@color/primary"
         android:textStyle="bold" />

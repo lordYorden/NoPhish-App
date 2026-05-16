@@ -61,7 +61,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="@font/noto_serif"
+                android:fontFamily="@font/plus_jakarta_sans"
                 android:text="@string/your_close_circle"
                 android:textColor="@color/primary"
                 android:textSize="18sp"
