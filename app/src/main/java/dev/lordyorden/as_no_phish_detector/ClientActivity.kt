@@ -7,7 +7,9 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
@@ -17,15 +19,21 @@ import com.clerk.api.Clerk
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
 import com.vmadalin.easypermissions.EasyPermissions
+import dev.convex.android.WebSocketState
 import dev.lordyorden.as_no_phish_detector.databinding.ActivityClientBinding
 import dev.lordyorden.as_no_phish_detector.databinding.AttackDetailsBottomSheetBinding
 import dev.lordyorden.as_no_phish_detector.databinding.UrlItemBinding
 import dev.lordyorden.as_no_phish_detector.models.AttackDetails
 import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
+import dev.lordyorden.as_no_phish_detector.clerk.UserStateViewModel
+import dev.lordyorden.as_no_phish_detector.clerk.UserUiState
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
+import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
+import dev.lordyorden.as_no_phish_detector.utilities.NetworkMonitor
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
@@ -33,7 +41,10 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
 
     private lateinit var binding: ActivityClientBinding
     private val permsViewModel: PermsViewModel by viewModels()
+    private val userStateViewModel: UserStateViewModel by viewModels()
     private lateinit var navController: NavController
+    private var signedInObserved = false
+    private var signedOutHandled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +60,8 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
     private fun initViews() {
         setupNav()
         setupFCM()
+        observeConnectionState()
+        observeAuthState()
 
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -81,6 +94,69 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
 
         })
 
+    }
+
+    private fun observeConnectionState() {
+        val networkMonitor = NetworkMonitor.getInstance()
+        val convexClient = ConvexHelper.getInstance().convexClient
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                combine(
+                    networkMonitor.isOnline,
+                    convexClient.webSocketStateFlow
+                ) { isOnline, webSocketState ->
+                    isOnline to webSocketState
+                }.collect { (isOnline, webSocketState) ->
+                    when {
+                        !isOnline -> {
+                            binding.offlineBanner.text = getString(R.string.offline_banner)
+                            binding.offlineBanner.visibility = View.VISIBLE
+                        }
+
+                        webSocketState != WebSocketState.CONNECTED -> {
+                            binding.offlineBanner.text = getString(R.string.reconnecting_banner)
+                            binding.offlineBanner.visibility = View.VISIBLE
+                        }
+
+                        else -> {
+                            binding.offlineBanner.visibility = View.GONE
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeAuthState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                userStateViewModel.uiState.collect { userState ->
+                    when (userState) {
+                        UserUiState.SignedIn -> signedInObserved = true
+
+                        UserUiState.SignedOut -> {
+                            if (signedInObserved && !signedOutHandled) {
+                                signedOutHandled = true
+                                Toast.makeText(
+                                    this@ClientActivity,
+                                    getString(R.string.session_expired),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                startActivity(
+                                    Intent(this@ClientActivity, MainActivity::class.java).apply {
+                                        flags =
+                                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }
+                                )
+                            }
+                        }
+
+                        else -> Unit
+                    }
+                }
+            }
+        }
     }
 
     private fun setupFCM() {
@@ -226,4 +302,3 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         const val TAG = "ClientActivity"
     }
 }
-

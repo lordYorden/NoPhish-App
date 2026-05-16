@@ -77,6 +77,10 @@ class MainActivity : AppCompatActivity() {
             UserUiState.Loading -> {
                 binding.toolbar.navigationIcon?.alpha = 125
             }
+
+            UserUiState.ConnectionFailure -> {
+                binding.toolbar.navigationIcon?.alpha = 125
+            }
         }
     }
 

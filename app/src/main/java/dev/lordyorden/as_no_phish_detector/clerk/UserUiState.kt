@@ -4,4 +4,5 @@ sealed interface UserUiState {
     data object Loading : UserUiState
     data object SignedIn : UserUiState
     data object SignedOut : UserUiState
+    data object ConnectionFailure : UserUiState
 }
