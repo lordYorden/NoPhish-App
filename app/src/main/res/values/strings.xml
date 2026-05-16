@@ -96,6 +96,11 @@
     <string name="history_error">Could not load history</string>
     <string name="retry">Retry</string>
     <string name="msg_unavailable_event">Details unavailable on this device</string>
+    <string name="connection_failed_title">Connection failed</string>
+    <string name="connection_failed_message">No internet connection. Reconnect and try again.</string>
+    <string name="offline_banner">No internet connection</string>
+    <string name="reconnecting_banner">Reconnecting...</string>
+    <string name="session_expired">Session expired. Please sign in again.</string>
 
     <plurals name="history_results_plural">
         <item quantity="one">%d result</item>

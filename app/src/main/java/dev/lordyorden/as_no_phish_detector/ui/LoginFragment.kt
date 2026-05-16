@@ -15,7 +15,9 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.clerk.api.Clerk
 import com.clerk.api.network.serialization.errorMessage
@@ -23,6 +25,7 @@ import com.clerk.api.network.serialization.onFailure
 import com.clerk.api.network.serialization.onSuccess
 import com.clerk.api.signin.SignIn
 import com.clerk.api.sso.OAuthProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.clerk.UserStateViewModel
@@ -30,6 +33,7 @@ import dev.lordyorden.as_no_phish_detector.clerk.UserUiState
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentLoginBinding
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
+import dev.lordyorden.as_no_phish_detector.utilities.NetworkMonitor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,6 +43,7 @@ class LoginFragment : Fragment() {
     private val userState: UserStateViewModel by viewModels()
 
     private var isRunning: Boolean = false
+    private var connectionDialogShown: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,15 +65,51 @@ class LoginFragment : Fragment() {
                     }
 
                     UserUiState.Loading -> {
+                        if (!NetworkMonitor.getInstance().isOnline.value) {
+                            binding.btnGoogle.alpha = 0.65f
+                            binding.btnGoogle.isEnabled = false
+                            binding.loading.visibility = View.GONE
+                            showConnectionFailureDialog()
+                            return@collect
+                        }
+                        connectionDialogShown = false
                         binding.btnGoogle.alpha = 0.65f
                         binding.btnGoogle.isEnabled = false
                         binding.loading.visibility = View.VISIBLE
                     }
 
-                    else -> {
+                    UserUiState.ConnectionFailure -> {
+                        binding.btnGoogle.alpha = 0.65f
+                        binding.btnGoogle.isEnabled = false
+                        binding.loading.visibility = View.GONE
+                        showConnectionFailureDialog()
+                    }
+
+                    UserUiState.SignedOut -> {
+                        if (!NetworkMonitor.getInstance().isOnline.value) {
+                            binding.btnGoogle.alpha = 0.65f
+                            binding.btnGoogle.isEnabled = false
+                            binding.loading.visibility = View.GONE
+                            showConnectionFailureDialog()
+                            return@collect
+                        }
+                        connectionDialogShown = false
                         binding.btnGoogle.alpha = 1f
                         binding.btnGoogle.isEnabled = true
                         binding.loading.visibility = View.GONE
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                NetworkMonitor.getInstance().isOnline.collect { isOnline ->
+                    if (!isOnline) {
+                        binding.btnGoogle.alpha = 0.65f
+                        binding.btnGoogle.isEnabled = false
+                        binding.loading.visibility = View.GONE
+                        showConnectionFailureDialog()
                     }
                 }
             }
@@ -84,19 +125,40 @@ class LoginFragment : Fragment() {
         if (isRunning){ return }
         isRunning = true
 
-        withContext(Dispatchers.IO){
-            val circleId = getMyCircle()
-            if (circleId != Constants.Onboarding.ACTION_GENERATE){
-                moveToClient(circleId)
-            }
-            else {
-                requireActivity().runOnUiThread {
-                    findNavController().navigate(R.id.action_loginFragment_to_welcomeFragment)
+        try {
+            withContext(Dispatchers.IO){
+                when (val result = getMyCircle()) {
+                    is CircleResolution.HasCircle -> {
+                        requireActivity().runOnUiThread {
+                            moveToClient(result.circleId)
+                        }
+                    }
+
+                    CircleResolution.NeedsOnboarding -> {
+                        requireActivity().runOnUiThread {
+                            findNavController().navigate(R.id.action_loginFragment_to_welcomeFragment)
+                        }
+                    }
+
+                    is CircleResolution.Failed -> {
+                        Log.e(TAG, "Failed to resolve circle", result.error)
+                        requireActivity().runOnUiThread {
+                            if (!NetworkMonitor.getInstance().isOnline.value) {
+                                showConnectionFailureDialog()
+                            } else {
+                                MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle(R.string.connection_failed_title)
+                                    .setMessage(result.error.message ?: getString(R.string.session_expired))
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show()
+                            }
+                        }
+                    }
                 }
             }
+        } finally {
+            isRunning = false
         }
-
-        isRunning = false
     }
 
     private fun moveToClient(circleId: String){
@@ -106,18 +168,30 @@ class LoginFragment : Fragment() {
         requireActivity().startActivity(intent)
     }
 
-    private suspend fun getMyCircle(): String {
+    private suspend fun getMyCircle(): CircleResolution {
         val client = ConvexHelper.getInstance().convexClient
 
-        try {
+        return try {
             val circleId = client.mutation<String>("circles:get_my_circles")
-            return circleId
+            if (circleId == Constants.Onboarding.ACTION_GENERATE) {
+                CircleResolution.NeedsOnboarding
+            } else {
+                CircleResolution.HasCircle(circleId)
+            }
         } catch (e: Exception) {
-            val msg = e.message ?: "no msg"
-            Log.e(TAG, "error $msg")
+            CircleResolution.Failed(e)
         }
+    }
 
-        return Constants.Onboarding.ACTION_GENERATE
+    private fun showConnectionFailureDialog() {
+        if (connectionDialogShown || !isAdded) return
+        connectionDialogShown = true
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.connection_failed_title)
+            .setMessage(R.string.connection_failed_message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     private val privacyClick = object : ClickableSpan() {
@@ -193,5 +267,11 @@ class LoginFragment : Fragment() {
 
     companion object {
         const val TAG = "LoginFragment"
+    }
+
+    private sealed interface CircleResolution {
+        data class HasCircle(val circleId: String) : CircleResolution
+        data object NeedsOnboarding : CircleResolution
+        data class Failed(val error: Throwable) : CircleResolution
     }
 }

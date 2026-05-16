@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,7 +16,24 @@
         android:background="@color/background"
         app:menu="@menu/settings_action_menu"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/nav_host_fragment_activity_client" />
+        app:layout_constraintBottom_toTopOf="@id/offline_banner" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/offline_banner"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:background="@color/tertiary_container"
+        android:gravity="center"
+        android:text="@string/offline_banner"
+        android:textColor="@color/on_tertiary"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@id/nav_host_fragment_activity_client"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
@@ -38,7 +56,7 @@
         app:layout_constraintBottom_toTopOf="@id/nav_view"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/offline_banner"
         app:navGraph="@navigation/client_navigation" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
