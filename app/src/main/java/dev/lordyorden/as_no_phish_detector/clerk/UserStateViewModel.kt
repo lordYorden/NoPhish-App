@@ -28,8 +28,13 @@ class UserStateViewModel : ViewModel() {
             client.authState,
             Clerk.isInitialized,
             Clerk.sessionFlow,
+            Clerk.userFlow,
             networkMonitor.isOnline
-        ) { authState, isInitialized, session, isOnline ->
+        ) { authState, isInitialized, session, user, isOnline ->
+            if (isInitialized && user == null) {
+                hasSeenAuthenticatedSession = false
+            }
+
             _uiState.value = when (authState) {
                 is AuthState.Authenticated -> {
                     hasSeenAuthenticatedSession = true
