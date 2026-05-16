@@ -43,6 +43,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
     private val permsViewModel: PermsViewModel by viewModels()
     private val userStateViewModel: UserStateViewModel by viewModels()
     private lateinit var navController: NavController
+    private var signedInObserved = false
     private var signedOutHandled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,18 +132,27 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 userStateViewModel.uiState.collect { userState ->
-                    if (userState == UserUiState.SignedOut && !signedOutHandled) {
-                        signedOutHandled = true
-                        Toast.makeText(
-                            this@ClientActivity,
-                            getString(R.string.session_expired),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        startActivity(
-                            Intent(this@ClientActivity, MainActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    when (userState) {
+                        UserUiState.SignedIn -> signedInObserved = true
+
+                        UserUiState.SignedOut -> {
+                            if (signedInObserved && !signedOutHandled) {
+                                signedOutHandled = true
+                                Toast.makeText(
+                                    this@ClientActivity,
+                                    getString(R.string.session_expired),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                startActivity(
+                                    Intent(this@ClientActivity, MainActivity::class.java).apply {
+                                        flags =
+                                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }
+                                )
                             }
-                        )
+                        }
+
+                        else -> Unit
                     }
                 }
             }
