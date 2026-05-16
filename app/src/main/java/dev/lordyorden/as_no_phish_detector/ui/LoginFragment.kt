@@ -56,54 +56,56 @@ class LoginFragment : Fragment() {
     }
 
     private fun initViews() {
-        lifecycleScope.launch {
-            userState.uiState.collect { currState ->
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                userState.uiState.collect { currState ->
 
-                when (currState) {
-                    UserUiState.SignedIn -> {
-                        fetchAndMoveToClient()
-                    }
+                    when (currState) {
+                        UserUiState.SignedIn -> {
+                            fetchAndMoveToClient()
+                        }
 
-                    UserUiState.Loading -> {
-                        if (!NetworkMonitor.getInstance().isOnline.value) {
+                        UserUiState.Loading -> {
+                            if (!NetworkMonitor.getInstance().isOnline.value) {
+                                binding.btnGoogle.alpha = 0.65f
+                                binding.btnGoogle.isEnabled = false
+                                binding.loading.visibility = View.GONE
+                                showConnectionFailureDialog()
+                                return@collect
+                            }
+                            connectionDialogShown = false
+                            binding.btnGoogle.alpha = 0.65f
+                            binding.btnGoogle.isEnabled = false
+                            binding.loading.visibility = View.VISIBLE
+                        }
+
+                        UserUiState.ConnectionFailure -> {
                             binding.btnGoogle.alpha = 0.65f
                             binding.btnGoogle.isEnabled = false
                             binding.loading.visibility = View.GONE
                             showConnectionFailureDialog()
-                            return@collect
                         }
-                        connectionDialogShown = false
-                        binding.btnGoogle.alpha = 0.65f
-                        binding.btnGoogle.isEnabled = false
-                        binding.loading.visibility = View.VISIBLE
-                    }
 
-                    UserUiState.ConnectionFailure -> {
-                        binding.btnGoogle.alpha = 0.65f
-                        binding.btnGoogle.isEnabled = false
-                        binding.loading.visibility = View.GONE
-                        showConnectionFailureDialog()
-                    }
-
-                    UserUiState.SignedOut -> {
-                        if (!NetworkMonitor.getInstance().isOnline.value) {
-                            binding.btnGoogle.alpha = 0.65f
-                            binding.btnGoogle.isEnabled = false
+                        UserUiState.SignedOut -> {
+                            if (!NetworkMonitor.getInstance().isOnline.value) {
+                                binding.btnGoogle.alpha = 0.65f
+                                binding.btnGoogle.isEnabled = false
+                                binding.loading.visibility = View.GONE
+                                showConnectionFailureDialog()
+                                return@collect
+                            }
+                            connectionDialogShown = false
+                            binding.btnGoogle.alpha = 1f
+                            binding.btnGoogle.isEnabled = true
                             binding.loading.visibility = View.GONE
-                            showConnectionFailureDialog()
-                            return@collect
                         }
-                        connectionDialogShown = false
-                        binding.btnGoogle.alpha = 1f
-                        binding.btnGoogle.isEnabled = true
-                        binding.loading.visibility = View.GONE
                     }
                 }
             }
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 NetworkMonitor.getInstance().isOnline.collect { isOnline ->
                     if (!isOnline) {
                         binding.btnGoogle.alpha = 0.65f
