@@ -121,38 +121,37 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private suspend fun fetchAndMoveToClient(){
-        if (isRunning){ return }
+    private suspend fun fetchAndMoveToClient() {
+        if (isRunning) {
+            return
+        }
         isRunning = true
 
         try {
-            withContext(Dispatchers.IO){
-                when (val result = getMyCircle()) {
-                    is CircleResolution.HasCircle -> {
-                        requireActivity().runOnUiThread {
-                            moveToClient(result.circleId)
-                        }
-                    }
+            val result = withContext(Dispatchers.IO) { getMyCircle() }
+            if (!isAdded) return
 
-                    CircleResolution.NeedsOnboarding -> {
-                        requireActivity().runOnUiThread {
-                            findNavController().navigate(R.id.action_loginFragment_to_welcomeFragment)
-                        }
-                    }
+            when (result) {
+                is CircleResolution.HasCircle -> {
+                    moveToClient(result.circleId)
+                }
 
-                    is CircleResolution.Failed -> {
-                        Log.e(TAG, "Failed to resolve circle", result.error)
-                        requireActivity().runOnUiThread {
-                            if (!NetworkMonitor.getInstance().isOnline.value) {
-                                showConnectionFailureDialog()
-                            } else {
-                                MaterialAlertDialogBuilder(requireContext())
-                                    .setTitle(R.string.connection_failed_title)
-                                    .setMessage(result.error.message ?: getString(R.string.session_expired))
-                                    .setPositiveButton(android.R.string.ok, null)
-                                    .show()
-                            }
-                        }
+                CircleResolution.NeedsOnboarding -> {
+                    findNavController().navigate(R.id.action_loginFragment_to_welcomeFragment)
+                }
+
+                is CircleResolution.Failed -> {
+                    Log.e(TAG, "Failed to resolve circle", result.error)
+                    if (!NetworkMonitor.getInstance().isOnline.value) {
+                        showConnectionFailureDialog()
+                    } else {
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.connection_failed_title)
+                            .setMessage(
+                                result.error.message ?: getString(R.string.session_expired)
+                            )
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
                     }
                 }
             }
@@ -161,7 +160,7 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private fun moveToClient(circleId: String){
+    private fun moveToClient(circleId: String) {
         val intent = Intent(requireActivity(), ClientActivity::class.java).apply {
             putExtra(Constants.Circle.CIRCLE_ID_KEY, circleId)
         }
@@ -251,8 +250,7 @@ class LoginFragment : Fragment() {
                     if (res.signIn?.status != SignIn.Status.COMPLETE) {
                         // User might need to provide extra info (e.g. missing phone number)
                         Log.d("Clerk", "Missing requirements: ${res.signUp?.requiredFields}")
-                    }
-                    else if (res.signIn?.status == SignIn.Status.NEEDS_CLIENT_TRUST) {
+                    } else if (res.signIn?.status == SignIn.Status.NEEDS_CLIENT_TRUST) {
                         // You must now show a UI for the user to enter a code
                         // and call res.prepareFirstFactor() then res.attemptFirstFactor()
                         Log.d("Clerk", "Device is new. Verification code sent to email.")
