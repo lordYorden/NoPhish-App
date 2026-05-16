@@ -29,7 +29,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/noto_serif"
+                    android:fontFamily="@font/plus_jakarta_sans"
                     android:text="@string/history_subtitle"
                     android:textAllCaps="true"
                     android:textColor="@color/primary"

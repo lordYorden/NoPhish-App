@@ -35,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="80dp"
-        android:fontFamily="@font/noto_serif"
+        android:fontFamily="@font/plus_jakarta_sans"
         android:text="@string/welcome"
         android:textColor="@color/primary"
         android:textSize="42sp"

@@ -16,7 +16,7 @@
         android:textColor="@color/primary"
         android:textSize="42sp"
         android:textStyle="bold"
-        app:fontFamily="@font/noto_serif" />
+        app:fontFamily="@font/plus_jakarta_sans" />
 
     <!-- Subtitle -->
     <com.google.android.material.textview.MaterialTextView
