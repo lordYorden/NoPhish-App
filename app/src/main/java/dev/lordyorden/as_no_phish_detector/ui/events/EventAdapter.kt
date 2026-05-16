@@ -110,7 +110,11 @@ class EventAdapter(
                 tvName.text = event.action
                 tvDate.text = formatTimestamp(event.timestamp.toLong())
 
-                event.packageName?.let { ImageLoader.getInstance().loadAppIcon(it, ivAppSource,  R.drawable.ic_phone) }
+                event.packageName?.let {
+                    ImageLoader.getInstance().loadAppIcon(it, ivAppSource,  R.drawable.ic_phone)
+                } ?: run {
+                    ivAppSource.setImageResource(R.drawable.ic_phone)
+                }
 
                 btnDetails.setTextColor(ContextCompat.getColor(root.context, R.color.primary))
                 btnDetails.isEnabled = true

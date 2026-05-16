@@ -96,4 +96,9 @@
     <string name="history_error">Could not load history</string>
     <string name="retry">Retry</string>
     <string name="msg_unavailable_event">Details unavailable on this device</string>
+
+    <plurals name="history_results_plural">
+        <item quantity="one">%d result</item>
+        <item quantity="other">%d results</item>
+    </plurals>
 </resources>

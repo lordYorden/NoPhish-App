@@ -79,10 +79,11 @@ class HistoryScreenRenderer(
     }
 
     private fun renderResultCount(count: Int) {
-        binding.tvResultCount.text = buildString {
-            append(count)
-            append(if (count == 1) " result" else " results")
-        }
+        binding.tvResultCount.text = context.resources.getQuantityString(
+            R.plurals.history_results_plural,
+            count,
+            count
+        )
     }
 }
 
