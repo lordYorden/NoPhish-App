@@ -168,7 +168,7 @@
                             android:layout_marginStart="8dp"
                             android:fontFamily="@font/plus_jakarta_sans"
                             android:text="@string/malicious_url_blocked"
-                            android:textColor="@color/surface_text"
+                            android:textColor="@color/on_surface"
                             android:textSize="14sp" />
                     </androidx.appcompat.widget.LinearLayoutCompat>
 

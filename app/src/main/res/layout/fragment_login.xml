@@ -134,7 +134,7 @@
                 <View
                     android:layout_width="60dp"
                     android:layout_height="1dp"
-                    android:background="@color/surface_text" />
+                    android:background="@color/on_surface" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
@@ -143,12 +143,12 @@
                     android:fontFamily="@font/plus_jakarta_sans"
                     android:textStyle="italic"
                     android:text="@string/login_divider_text"
-                    android:textColor="@color/surface_text" />
+                    android:textColor="@color/on_surface" />
 
                 <View
                     android:layout_width="60dp"
                     android:layout_height="1dp"
-                    android:background="@color/surface_text" />
+                    android:background="@color/on_surface" />
             </androidx.appcompat.widget.LinearLayoutCompat>
 
             <com.google.android.material.textview.MaterialTextView

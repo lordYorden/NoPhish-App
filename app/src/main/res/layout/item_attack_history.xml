@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_marginBottom="15dp"
-                android:textColor="@color/surface_text"
+                android:textColor="@color/on_surface"
                 android:textSize="12sp"
                 tools:text="Oct 24, 2:15 PM" />
 

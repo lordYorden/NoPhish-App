@@ -109,7 +109,7 @@
                     android:layout_marginTop="16dp"
                     android:gravity="center"
                     android:text="@string/send_a_text"
-                    android:textColor="@color/surface_text"
+                    android:textColor="@color/on_surface"
                     android:textSize="12sp" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
