@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -25,6 +24,7 @@ import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBind
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Event
 import dev.lordyorden.as_no_phish_detector.models.PaginationResult
+import dev.lordyorden.as_no_phish_detector.ui.events.CircleRecentActivityRenderer
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
@@ -36,7 +36,10 @@ class CircleFragment : Fragment() {
     private lateinit var recentBinding: SectionRecentActivityBinding
     private val circleMembers: MutableList<CircleMember> = mutableListOf()
     private lateinit var eventPreviewAdapter: EventPreviewAdapter
+    private lateinit var recentActivityRenderer: CircleRecentActivityRenderer
     private lateinit var localStore: MaliciousNotificationStore
+    private var recentEvents: List<Event> = emptyList()
+    private var circleMembersLoaded = false
 
     private lateinit var circleId: String
 
@@ -93,6 +96,11 @@ class CircleFragment : Fragment() {
         }
 
         recentBinding.rvEvents.adapter = eventPreviewAdapter
+        recentActivityRenderer = CircleRecentActivityRenderer(
+            binding = recentBinding,
+            adapter = eventPreviewAdapter,
+            context = requireContext(),
+        )
         recentBinding.tvViewAll.setOnClickListener {
             val bundle = Bundle().apply {
                 putString(Constants.Circle.CIRCLE_ID_KEY, circleId)
@@ -149,6 +157,7 @@ class CircleFragment : Fragment() {
         )).collect { result ->
             result.onSuccess { members ->
                 Log.d(TAG, "Received ${members.size} members")
+                circleMembersLoaded = true
                 circleMembers.clear()
                 members.forEach { member ->
                     circleMembers.add(member)
@@ -157,6 +166,7 @@ class CircleFragment : Fragment() {
                 requireActivity().runOnUiThread {
                     binding.rvCircle.adapter?.notifyDataSetChanged()
                 }
+                renderRecentActivity()
             }.onFailure { error ->
                 Log.e(TAG, "Failed to fetch members", error)
             }
@@ -175,18 +185,22 @@ class CircleFragment : Fragment() {
 
         client.subscribe<PaginationResult<Event>>("events:get_by_circle", args).collect { result ->
             result.onSuccess { page ->
-                eventPreviewAdapter.submitList(page.page)
-                recentBinding.rvEvents.isVisible = page.page.isNotEmpty()
-                recentBinding.tvRecentEmpty.isVisible = page.page.isEmpty()
-                recentBinding.tvRecentEmpty.text = getString(R.string.circle_events_empty)
+                recentEvents = page.page
+                renderRecentActivity()
             }.onFailure { error ->
                 Log.e(TAG, "Failed to fetch recent circle events", error)
-                eventPreviewAdapter.submitList(emptyList())
-                recentBinding.rvEvents.isVisible = false
-                recentBinding.tvRecentEmpty.isVisible = true
-                recentBinding.tvRecentEmpty.text = getString(R.string.circle_events_error)
+                recentActivityRenderer.renderError()
             }
         }
+    }
+
+    private fun renderRecentActivity() {
+        if (!::recentActivityRenderer.isInitialized) return
+        recentActivityRenderer.render(
+            events = recentEvents,
+            members = circleMembers,
+            membersLoaded = circleMembersLoaded,
+        )
     }
 
 

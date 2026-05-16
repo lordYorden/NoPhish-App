@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.ItemRecentActivityBinding
 import dev.lordyorden.as_no_phish_detector.models.Event
+import dev.lordyorden.as_no_phish_detector.ui.events.CircleEventUiItem
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 import java.time.Instant
 import java.time.ZoneId
@@ -17,10 +18,10 @@ class EventPreviewAdapter(
     private val onMemberClick: (Event) -> Unit
 ) : RecyclerView.Adapter<EventPreviewAdapter.EventViewHolder>() {
 
-    private var events = emptyList<Event>()
+    private var events = emptyList<CircleEventUiItem>()
     private val dateFormatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.US)
 
-    fun submitList(nextEvents: List<Event>) {
+    fun submitList(nextEvents: List<CircleEventUiItem>) {
         val diff = DiffUtil.calculateDiff(EventPreviewDiffCallback(events, nextEvents))
         events = nextEvents
         diff.dispatchUpdatesTo(this)
@@ -47,11 +48,11 @@ class EventPreviewAdapter(
         with(holder.binding){
             with(getItem(position)){
 
-                tvName.text = "name"
-                tvAction.text = action
-                tvTime.text = formatTimestamp(timestamp.toLong())
+                tvName.text = memberName
+                tvAction.text = event.action
+                tvTime.text = formatTimestamp(event.timestamp.toLong())
 
-                packageName?.let {
+                event.packageName?.let {
                     ImageLoader.getInstance().loadAppIcon(it, ivIcon, R.drawable.ic_phone)
                 } ?: run {
                     ivIcon.setImageResource(R.drawable.ic_phone)
@@ -63,22 +64,22 @@ class EventPreviewAdapter(
     inner class EventViewHolder(val binding: ItemRecentActivityBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                onMemberClick(getItem(bindingAdapterPosition))
+                onMemberClick(getItem(bindingAdapterPosition).event)
             }
         }
     }
 }
 
 private class EventPreviewDiffCallback(
-    private val oldEvents: List<Event>,
-    private val newEvents: List<Event>,
+    private val oldEvents: List<CircleEventUiItem>,
+    private val newEvents: List<CircleEventUiItem>,
 ) : DiffUtil.Callback() {
     override fun getOldListSize() = oldEvents.size
 
     override fun getNewListSize() = newEvents.size
 
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldEvents[oldItemPosition].eventId == newEvents[newItemPosition].eventId
+        return oldEvents[oldItemPosition].event.eventId == newEvents[newItemPosition].event.eventId
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {

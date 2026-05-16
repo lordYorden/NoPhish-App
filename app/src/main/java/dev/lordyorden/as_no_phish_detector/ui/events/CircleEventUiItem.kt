@@ -1,0 +1,8 @@
+package dev.lordyorden.as_no_phish_detector.ui.events
+
+import dev.lordyorden.as_no_phish_detector.models.Event
+
+data class CircleEventUiItem(
+    val event: Event,
+    val memberName: String,
+)

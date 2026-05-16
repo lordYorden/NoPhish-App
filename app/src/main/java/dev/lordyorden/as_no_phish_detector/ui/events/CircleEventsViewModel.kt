@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.convex.android.ConvexClient
 import dev.convex.android.WebSocketState
+import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Event
 import dev.lordyorden.as_no_phish_detector.models.PaginationResult
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
@@ -17,33 +18,43 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Instant
 
 class CircleEventsViewModel : ViewModel() {
 
     private val client: ConvexClient = ConvexHelper.getInstance().convexClient
 
-    private val _uiState = MutableStateFlow(HistoryUiState())
-    val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(CircleEventsUiState())
+    val uiState: StateFlow<CircleEventsUiState> = _uiState.asStateFlow()
 
-    private var job: Job? = null
+    private var eventsJob: Job? = null
+    private var membersJob: Job? = null
     private var webSocketJob: Job? = null
     private var requestedItemCount = Constants.HistoryPagination.PAGE_SIZE
     private var circleId: String? = null
-
-    var startTime: Instant? = null
-        set(value) {
-            if (field == value) return
-            field = value
-            resetHistory()
-        }
+    private var latestEvents = emptyList<Event>()
+    private var latestMembers = emptyList<CircleMember>()
+    private var membersLoaded = false
+    private var alertScope = CircleAlertScope.ActionRequired
 
     fun start(circleId: String) {
         require(circleId.isNotBlank()) { "circleId must not be blank" }
 
-        if (this.circleId == circleId && job != null) return
+        if (this.circleId == circleId && eventsJob != null && membersJob != null) return
         this.circleId = circleId
         observeReconnects()
+        subscribeToMembers(circleId)
+        subscribeToEvents(HistoryLoading.Initial)
+    }
+
+    fun setAlertScope(scope: CircleAlertScope) {
+        if (alertScope == scope) return
+        alertScope = scope
+        requestedItemCount = Constants.HistoryPagination.PAGE_SIZE
+        latestEvents = emptyList()
+        _uiState.value = CircleEventsUiState(
+            loading = HistoryLoading.Initial,
+            alertScope = scope,
+        )
         subscribeToEvents(HistoryLoading.Initial)
     }
 
@@ -64,38 +75,53 @@ class CircleEventsViewModel : ViewModel() {
         subscribeToEvents(loading)
     }
 
-    private fun resetHistory() {
-        requestedItemCount = Constants.HistoryPagination.PAGE_SIZE
-        job?.cancel()
-        job = null
-        _uiState.value = HistoryUiState(loading = HistoryLoading.Initial)
-        subscribeToEvents(HistoryLoading.Initial)
+    private fun subscribeToMembers(circleId: String) {
+        membersJob?.cancel()
+        membersJob = viewModelScope.launch {
+            try {
+                client.subscribe<List<CircleMember>>(
+                    "members:get",
+                    mapOf("circleId" to circleId)
+                ).collect { result ->
+                    result.onSuccess { members ->
+                        membersLoaded = true
+                        latestMembers = members
+                        publishResolvedEvents()
+                    }.onFailure { error ->
+                        publishError(error)
+                    }
+                }
+            } catch (error: Exception) {
+                publishError(error)
+            }
+        }
     }
 
     private fun subscribeToEvents(loading: HistoryLoading) {
         val circleId = this.circleId
         require(!circleId.isNullOrBlank()) { "circleId must be set before subscribing to circle events" }
 
-        job?.cancel()
+        eventsJob?.cancel()
 
         _uiState.update {
             it.copy(
                 loading = loading,
                 errorMessage = null,
-                endReached = if (loading == HistoryLoading.Initial) false else it.endReached
+                endReached = if (loading == HistoryLoading.Initial) false else it.endReached,
+                alertScope = alertScope,
             )
         }
 
         val args = circleEventsArgs(circleId)
         Log.d(TAG, "subscribing to circle events with args: $args")
 
-        job = viewModelScope.launch {
+        eventsJob = viewModelScope.launch {
             try {
                 client.subscribe<PaginationResult<Event>>("events:get_by_circle", args).collect { result ->
                     result.onSuccess { page ->
+                        latestEvents = page.page
                         Log.d(TAG, "received ${page.page.size} circle events; isDone=${page.isDone}")
-                        _uiState.value = HistoryUiState(
-                            events = page.page,
+                        publishResolvedEvents(
                             loading = HistoryLoading.Idle,
                             endReached = page.isDone,
                         )
@@ -107,6 +133,48 @@ class CircleEventsViewModel : ViewModel() {
                 publishError(error)
             }
         }
+    }
+
+    private fun publishResolvedEvents(
+        loading: HistoryLoading = _uiState.value.loading,
+        endReached: Boolean = _uiState.value.endReached,
+    ) {
+        if (!membersLoaded) {
+            _uiState.update {
+                it.copy(
+                    loading = if (latestEvents.isEmpty()) loading else HistoryLoading.Initial,
+                    errorMessage = null,
+                    endReached = endReached,
+                    alertScope = alertScope,
+                )
+            }
+            return
+        }
+
+        val memberNamesById = latestMembers.associate { it.userId to it.name }
+        val items = latestEvents.map { event ->
+            val memberName = memberNamesById[event.userId]
+            if (memberName.isNullOrBlank()) {
+                val message = "Missing circle member for eventId=${event.eventId}, userId=${event.userId}"
+                Log.e(TAG, message)
+                _uiState.update {
+                    it.copy(
+                        loading = HistoryLoading.Idle,
+                        errorMessage = message,
+                        alertScope = alertScope,
+                    )
+                }
+                return
+            }
+            CircleEventUiItem(event, memberName)
+        }
+
+        _uiState.value = CircleEventsUiState(
+            events = items,
+            loading = loading,
+            endReached = endReached,
+            alertScope = alertScope,
+        )
     }
 
     private fun observeReconnects() {
@@ -130,7 +198,8 @@ class CircleEventsViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 loading = HistoryLoading.Idle,
-                errorMessage = message
+                errorMessage = message,
+                alertScope = alertScope,
             )
         }
     }
@@ -144,9 +213,8 @@ class CircleEventsViewModel : ViewModel() {
             )
         )
 
-        val startTimestamp = startTime?.toEpochMilliseconds()
-        if (startTimestamp != null) {
-            args["startTime"] = startTimestamp.toDouble()
+        if (alertScope == CircleAlertScope.ActionRequired) {
+            args["requiresAction"] = true
         }
 
         return args

@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -17,20 +16,19 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleEventsBinding
+import dev.lordyorden.as_no_phish_detector.ui.events.CircleAlertScope
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleEventAdapter
+import dev.lordyorden.as_no_phish_detector.ui.events.CircleEventsScreenRenderer
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleEventsViewModel
-import dev.lordyorden.as_no_phish_detector.ui.events.HistoryLoading
-import dev.lordyorden.as_no_phish_detector.ui.events.HistoryUiState
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.days
 
 class CircleEventsFragment : Fragment() {
 
     private lateinit var binding: FragmentCircleEventsBinding
     private lateinit var adapter: CircleEventAdapter
+    private lateinit var renderer: CircleEventsScreenRenderer
     private lateinit var localStore: MaliciousNotificationStore
     private val viewModel: CircleEventsViewModel by viewModels()
 
@@ -67,16 +65,17 @@ class CircleEventsFragment : Fragment() {
 
         binding.rvCircleEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvCircleEvents.adapter = adapter
+        renderer = CircleEventsScreenRenderer(binding, adapter, requireContext())
 
         binding.btnCircleEventsRetry.setOnClickListener {
             viewModel.retry()
         }
 
-        binding.chipGroupFilter.setOnCheckedStateChangeListener { chipGroup, _ ->
-            when (chipGroup.checkedChipId) {
-                R.id.chip_last_7 -> viewModel.startTime = Clock.System.now() - 7.days
-                R.id.chip_last_30 -> viewModel.startTime = Clock.System.now() - 30.days
-                R.id.chip_all_time -> viewModel.startTime = null
+        binding.toggleAlertScope.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            when (checkedId) {
+                R.id.btn_action_required -> viewModel.setAlertScope(CircleAlertScope.ActionRequired)
+                R.id.btn_all_alerts -> viewModel.setAlertScope(CircleAlertScope.AllAlerts)
             }
         }
 
@@ -98,7 +97,7 @@ class CircleEventsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    render(state)
+                    renderer.render(state)
                 }
             }
         }
@@ -107,48 +106,11 @@ class CircleEventsFragment : Fragment() {
             ?: requireActivity().intent.extras?.getString(Constants.Circle.CIRCLE_ID_KEY)
         if (circleId.isNullOrBlank()) {
             Log.e(TAG, "CircleEventsFragment opened without a valid circleId")
-            renderContractError()
+            renderer.renderContractError()
             return
         }
 
         viewModel.start(circleId)
-    }
-
-    private fun render(state: HistoryUiState) {
-        val showInitialLoading = state.loading == HistoryLoading.Initial && state.events.isEmpty()
-        val showInitialError = state.events.isEmpty() && state.errorMessage != null
-        val showEmpty = state.loading == HistoryLoading.Idle &&
-            state.events.isEmpty() &&
-            state.errorMessage == null
-        val showState = showInitialLoading || showInitialError || showEmpty
-
-        binding.layoutCircleEventsState.isVisible = showState
-        binding.rvCircleEvents.isVisible = !showState
-        binding.progressCircleEvents.isVisible = showInitialLoading
-        binding.btnCircleEventsRetry.isVisible = showInitialError
-        binding.tvCircleEventsState.text = when {
-            showInitialLoading -> getString(R.string.circle_events_loading)
-            showInitialError -> getString(R.string.circle_events_error)
-            showEmpty -> getString(R.string.circle_events_empty)
-            else -> ""
-        }
-
-        binding.tvResultCount.text = resources.getQuantityString(
-            R.plurals.history_results_plural,
-            state.events.size,
-            state.events.size
-        )
-
-        adapter.submitList(state.events)
-    }
-
-    private fun renderContractError() {
-        binding.layoutCircleEventsState.isVisible = true
-        binding.rvCircleEvents.isVisible = false
-        binding.progressCircleEvents.isVisible = false
-        binding.btnCircleEventsRetry.isVisible = false
-        binding.tvCircleEventsState.text = getString(R.string.circle_event_contract_error)
-        binding.tvResultCount.text = getString(R.string.zero_result)
     }
 
     companion object {

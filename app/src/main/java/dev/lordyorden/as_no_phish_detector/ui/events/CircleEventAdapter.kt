@@ -17,10 +17,10 @@ class CircleEventAdapter(
     private val onDetailsClick: (Event) -> Unit,
 ) : RecyclerView.Adapter<CircleEventAdapter.CircleEventViewHolder>() {
 
-    private var events = emptyList<Event>()
+    private var events = emptyList<CircleEventUiItem>()
     private val dateFormatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.US)
 
-    fun submitList(nextEvents: List<Event>) {
+    fun submitList(nextEvents: List<CircleEventUiItem>) {
         val diff = DiffUtil.calculateDiff(EventDiffCallback(events, nextEvents))
         events = nextEvents
         diff.dispatchUpdatesTo(this)
@@ -41,7 +41,7 @@ class CircleEventAdapter(
         holder.bind(events[position])
     }
 
-    private fun getEvent(position: Int): Event? = events.getOrNull(position)
+    private fun getEvent(position: Int) = events.getOrNull(position)?.event
 
     private fun formatTimestamp(timestampMillis: Long): String {
         return Instant.ofEpochMilli(timestampMillis)
@@ -58,10 +58,11 @@ class CircleEventAdapter(
             }
         }
 
-        fun bind(event: Event) {
+        fun bind(item: CircleEventUiItem) {
             val context = binding.root.context
+            val event = item.event
             binding.tvTitle.text = event.action
-            binding.tvDesc.text = "description here"
+            binding.tvDesc.text = context.getString(R.string.circle_source, item.memberName)
             binding.tvTime.text = formatTimestamp(event.timestamp.toLong())
 
             event.packageName?.let {
@@ -74,15 +75,15 @@ class CircleEventAdapter(
 }
 
 private class EventDiffCallback(
-    private val oldEvents: List<Event>,
-    private val newEvents: List<Event>,
+    private val oldEvents: List<CircleEventUiItem>,
+    private val newEvents: List<CircleEventUiItem>,
 ) : DiffUtil.Callback() {
     override fun getOldListSize() = oldEvents.size
 
     override fun getNewListSize() = newEvents.size
 
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldEvents[oldItemPosition].eventId == newEvents[newItemPosition].eventId
+        return oldEvents[oldItemPosition].event.eventId == newEvents[newItemPosition].event.eventId
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {

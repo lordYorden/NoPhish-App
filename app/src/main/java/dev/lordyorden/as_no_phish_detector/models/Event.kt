@@ -9,7 +9,8 @@ data class Event(
     val circleId: String,
     val eventId: String,
     val contentHash: String,
-    val packageName: String? = null
+    val packageName: String? = null,
+    val requiresAction: Boolean? = null
 ) {
     init {
         require(circleId.isNotBlank()) { "circleId must not be blank" }
