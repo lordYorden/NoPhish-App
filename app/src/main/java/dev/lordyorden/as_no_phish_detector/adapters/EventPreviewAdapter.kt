@@ -13,6 +13,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 class EventPreviewAdapter(
     private val onMemberClick: (Event) -> Unit
@@ -28,7 +29,8 @@ class EventPreviewAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
-        val binding = ItemRecentActivityBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            ItemRecentActivityBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = EventViewHolder(binding)
 
         return holder
@@ -37,18 +39,32 @@ class EventPreviewAdapter(
     override fun getItemCount(): Int = events.size
 
     private fun getItem(position: Int) = events[position]
-
+    
     private fun formatTimestamp(timestampMillis: Long): String {
-        return Instant.ofEpochMilli(timestampMillis)
-            .atZone(ZoneId.systemDefault())
-            .format(dateFormatter)
+        val duration = (System.currentTimeMillis() - timestampMillis).milliseconds
+
+        return when {
+            duration.inWholeSeconds < 60 -> "${duration.inWholeSeconds}s ago"
+            duration.inWholeMinutes < 60 -> "${duration.inWholeMinutes}m ago"
+            duration.inWholeHours < 24 -> "${duration.inWholeHours}h ago"
+            else -> "${duration.inWholeDays}d ago"
+        }
     }
 
     override fun onBindViewHolder(holder: EventViewHolder, position: Int) {
-        with(holder.binding){
-            with(getItem(position)){
+        with(holder.binding) {
+            with(getItem(position)) {
 
-                tvName.text = memberName
+                tvName.text = member.name
+                /*member.avatarUrl?.let {
+                    ImageLoader.getInstance().loadImage(
+                        member.avatarUrl, ivIcon,
+                        R.drawable.ic_warning
+                    )
+                } ?: run {
+                    ivIcon.setImageResource(R.drawable.ic_warning)
+                }*/
+
                 tvAction.text = event.action
                 tvTime.text = formatTimestamp(event.timestamp.toLong())
 
@@ -61,7 +77,8 @@ class EventPreviewAdapter(
         }
     }
 
-    inner class EventViewHolder(val binding: ItemRecentActivityBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class EventViewHolder(val binding: ItemRecentActivityBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 onMemberClick(getItem(bindingAdapterPosition).event)

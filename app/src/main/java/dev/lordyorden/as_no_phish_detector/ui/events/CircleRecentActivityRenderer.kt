@@ -6,8 +6,8 @@ import androidx.core.view.isVisible
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.adapters.EventPreviewAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBinding
-import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Event
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersState
 
 class CircleRecentActivityRenderer(
     private val binding: SectionRecentActivityBinding,
@@ -16,30 +16,33 @@ class CircleRecentActivityRenderer(
 ) {
     fun render(
         events: List<Event>,
-        members: List<CircleMember>,
-        membersLoaded: Boolean,
+        membersState: CircleMembersState,
     ) {
         if (events.isEmpty()) {
             renderMessage(context.getString(R.string.circle_events_empty))
             return
         }
 
-        if (!membersLoaded) {
+        if (membersState.errorMessage != null) {
+            renderError()
+            return
+        }
+
+        if (!membersState.loaded) {
             adapter.submitList(emptyList())
             binding.rvEvents.isVisible = false
             binding.tvRecentEmpty.isVisible = false
             return
         }
 
-        val memberNamesById = members.associate { it.userId to it.name }
         val previewItems = events.map { event ->
-            val memberName = memberNamesById[event.userId]
-            if (memberName.isNullOrBlank()) {
+            val member = membersState.membersByUserId[event.userId]
+            if (member == null) {
                 Log.e(TAG, "Missing circle member for eventId=${event.eventId}, userId=${event.userId}")
                 renderMessage(context.getString(R.string.missing_for_event))
                 return
             }
-            CircleEventUiItem(event, memberName)
+            CircleEventUiItem(event, member)
         }
 
         adapter.submitList(previewItems)

@@ -1,6 +1,5 @@
 package dev.lordyorden.as_no_phish_detector.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -21,9 +20,9 @@ import dev.lordyorden.as_no_phish_detector.adapters.CircleAdapter
 import dev.lordyorden.as_no_phish_detector.adapters.EventPreviewAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
 import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBinding
-import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Event
 import dev.lordyorden.as_no_phish_detector.models.PaginationResult
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleRecentActivityRenderer
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
@@ -34,12 +33,11 @@ class CircleFragment : Fragment() {
 
     private lateinit var binding: FragmentCircleBinding
     private lateinit var recentBinding: SectionRecentActivityBinding
-    private val circleMembers: MutableList<CircleMember> = mutableListOf()
+    private lateinit var circleAdapter: CircleAdapter
     private lateinit var eventPreviewAdapter: EventPreviewAdapter
     private lateinit var recentActivityRenderer: CircleRecentActivityRenderer
     private lateinit var localStore: MaliciousNotificationStore
     private var recentEvents: List<Event> = emptyList()
-    private var circleMembersLoaded = false
 
     private lateinit var circleId: String
 
@@ -57,8 +55,8 @@ class CircleFragment : Fragment() {
 
         localStore = MaliciousNotificationStore.getInstance()
         getCircleId()
-        setupBottomSheet()
         setUpRecentActivity()
+        setupBottomSheet()
         binding.btnAdd.setOnClickListener {
 
             val bundle = Bundle().apply {
@@ -130,15 +128,22 @@ class CircleFragment : Fragment() {
 
         binding.rvCircle.layoutManager = LinearLayoutManager(requireContext())
 
-        val adapter = CircleAdapter(circleMembers) { member ->
+        circleAdapter = CircleAdapter { member ->
             Log.d("CircleFragment", "member clicked $member")
         }
 
-        binding.rvCircle.adapter = adapter
+        binding.rvCircle.adapter = circleAdapter
 
+        CircleMembersRepository.getInstance().observe(circleId)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED){
-                getCircleMembers()
+                CircleMembersRepository.getInstance().observe(circleId).collect { state ->
+                    state.errorMessage?.let { message ->
+                        Log.e(TAG, "Failed to fetch members: $message")
+                    }
+                    circleAdapter.submitList(state.members)
+                    renderRecentActivity()
+                }
             }
         }
     }
@@ -147,30 +152,6 @@ class CircleFragment : Fragment() {
         val extra = requireActivity().intent.extras
         circleId = extra?.getString(Constants.Circle.CIRCLE_ID_KEY, Constants.Circle.CIRCLE_TEMP_ID) ?: Constants.Circle.CIRCLE_TEMP_ID
         Log.d(TAG, "got circleId: $circleId")
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    private suspend fun getCircleMembers() {
-        val client = ConvexHelper.getInstance().convexClient
-        client.subscribe<List<CircleMember>>("members:get", mapOf(
-            "circleId" to circleId
-        )).collect { result ->
-            result.onSuccess { members ->
-                Log.d(TAG, "Received ${members.size} members")
-                circleMembersLoaded = true
-                circleMembers.clear()
-                members.forEach { member ->
-                    circleMembers.add(member)
-                    Log.d(TAG, "name: ${member.name}, role: ${member.familyRole}")
-                }
-                requireActivity().runOnUiThread {
-                    binding.rvCircle.adapter?.notifyDataSetChanged()
-                }
-                renderRecentActivity()
-            }.onFailure { error ->
-                Log.e(TAG, "Failed to fetch members", error)
-            }
-        }
     }
 
     private suspend fun getRecentCircleEvents() {
@@ -195,11 +176,9 @@ class CircleFragment : Fragment() {
     }
 
     private fun renderRecentActivity() {
-        if (!::recentActivityRenderer.isInitialized) return
         recentActivityRenderer.render(
             events = recentEvents,
-            members = circleMembers,
-            membersLoaded = circleMembersLoaded,
+            membersState = CircleMembersRepository.getInstance().currentState(circleId),
         )
     }
 

@@ -62,7 +62,7 @@ class CircleEventAdapter(
             val context = binding.root.context
             val event = item.event
             binding.tvTitle.text = event.action
-            binding.tvDesc.text = context.getString(R.string.circle_source, item.memberName)
+            binding.tvName.text = item.member.name
             binding.tvTime.text = formatTimestamp(event.timestamp.toLong())
 
             event.packageName?.let {

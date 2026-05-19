@@ -67,31 +67,6 @@ class ProfileDetailsFragment : Fragment() {
         Log.d(TAG, "got otp: $otpCode")
     }
 
-    private suspend fun testConvex() {
-        val client = ConvexHelper.getInstance().convexClient
-        client.subscribe<List<Task>>("tasks:get").collect { result ->
-                result.onSuccess { tasks ->
-                    Log.d(TAG, "Received ${tasks.size} tasks")
-                    tasks.forEach{ task->
-                        Log.d(TAG, "text: ${task.text}, isComplete: ${task.isCompleted}")
-                    }
-                }.onFailure { error ->
-                    Log.e(TAG, "Failed to fetch tasks", error)
-                }
-        }
-
-        client.subscribe<List<CircleMember>>("members:get").collect { result ->
-            result.onSuccess { members ->
-                Log.d(TAG, "Received ${members.size} members")
-                members.forEach{ member->
-                    Log.d(TAG, "name: ${member.name}, role: ${member.familyRole}")
-                }
-            }.onFailure { error ->
-                Log.e(TAG, "Failed to fetch members", error)
-            }
-        }
-    }
-
     private suspend fun registerMember() {
         val client = ConvexHelper.getInstance().convexClient
         val avatarUrl = Clerk.activeUser?.imageUrl ?: ""
