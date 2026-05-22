@@ -52,16 +52,21 @@ class CircleEventsViewModel : ViewModel() {
         alertScope = scope
         requestedItemCount = Constants.HistoryPagination.PAGE_SIZE
         latestEvents = emptyList()
-        _uiState.value = CircleEventsUiState(
-            loading = HistoryLoading.Initial,
-            alertScope = scope,
-        )
+        if (!hasCircleId()) {
+            publishPendingState(HistoryLoading.Initial)
+            return
+        }
+
         subscribeToEvents(HistoryLoading.Initial)
     }
 
     fun loadNextPage() {
         val state = _uiState.value
         if (state.loading != HistoryLoading.Idle || state.endReached || state.errorMessage != null) return
+        if (!hasCircleId()) {
+            publishPendingState(HistoryLoading.Initial)
+            return
+        }
 
         requestedItemCount += Constants.HistoryPagination.PAGE_SIZE
         subscribeToEvents(HistoryLoading.Append)
@@ -73,6 +78,11 @@ class CircleEventsViewModel : ViewModel() {
         } else {
             HistoryLoading.Append
         }
+        if (!hasCircleId()) {
+            publishPendingState(loading)
+            return
+        }
+
         subscribeToEvents(loading)
     }
 
@@ -94,7 +104,10 @@ class CircleEventsViewModel : ViewModel() {
 
     private fun subscribeToEvents(loading: HistoryLoading) {
         val circleId = this.circleId
-        require(!circleId.isNullOrBlank()) { "circleId must be set before subscribing to circle events" }
+        if (circleId.isNullOrBlank()) {
+            publishPendingState(loading)
+            return
+        }
 
         eventsJob?.cancel()
 
@@ -128,6 +141,15 @@ class CircleEventsViewModel : ViewModel() {
                 publishError(error)
             }
         }
+    }
+
+    private fun hasCircleId(): Boolean = !circleId.isNullOrBlank()
+
+    private fun publishPendingState(loading: HistoryLoading) {
+        _uiState.value = CircleEventsUiState(
+            loading = loading,
+            alertScope = alertScope,
+        )
     }
 
     private fun publishResolvedEvents(
