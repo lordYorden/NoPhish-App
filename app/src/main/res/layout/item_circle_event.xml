@@ -125,19 +125,20 @@
                     tools:text="Source: user_123" />
             </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.button.MaterialButtonGroup
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                android:layout_marginTop="16dp"
-                style="@style/Widget.Material3.MaterialButtonGroup"
                 app:layout_constraintTop_toBottomOf="@id/bg_source">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_details"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1.45"
                     android:text="@string/view_details"
                     android:textAllCaps="false"
                     android:backgroundTint="@color/primary"
@@ -147,8 +148,10 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_block"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
                     android:text="@string/block"
                     android:textAllCaps="false"
                     android:backgroundTint="@color/tertiary"
@@ -156,7 +159,7 @@
                     app:icon="@drawable/ic_block"
                     app:iconGravity="textEnd" />
 
-            </com.google.android.material.button.MaterialButtonGroup>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
