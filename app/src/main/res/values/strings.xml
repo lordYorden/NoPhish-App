@@ -94,13 +94,25 @@
     <string name="history_end">You have reached the end of your history</string>
     <string name="history_empty">No history events found</string>
     <string name="history_error">Could not load history</string>
+    <string name="circle_events">Circle Events</string>
+    <string name="circle_alerts">Circle Alerts</string>
+    <string name="circle_events_empty">No circle events found</string>
+    <string name="circle_events_loading">Loading circle events…</string>
+    <string name="circle_events_error">Could not load circle events</string>
+    <string name="circle_source">Source: %1$s</string>
+    <string name="circle_event_contract_error">Circle events need a valid circle ID</string>
+    <string name="action_required">Action Required</string>
+    <string name="all_alerts">All Alerts</string>
+    <string name="missing_for_event">Circle event references a member that is not in this circle</string>
     <string name="retry">Retry</string>
     <string name="msg_unavailable_event">Details unavailable on this device</string>
     <string name="connection_failed_title">Connection failed</string>
     <string name="connection_failed_message">No internet connection. Reconnect and try again.</string>
     <string name="offline_banner">No internet connection</string>
-    <string name="reconnecting_banner">Reconnecting...</string>
+    <string name="reconnecting_banner">Reconnecting…</string>
     <string name="session_expired">Session expired. Please sign in again.</string>
+    <string name="block">Block</string>
+    <string name="alerts">Alerts</string>
 
     <plurals name="history_results_plural">
         <item quantity="one">%d result</item>

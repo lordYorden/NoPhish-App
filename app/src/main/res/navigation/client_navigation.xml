@@ -17,6 +17,9 @@
         <action
             android:id="@+id/action_nev_circle_to_invite_fragment"
             app:destination="@id/invite_fragment" />
+        <action
+            android:id="@+id/action_nev_circle_to_circle_events"
+            app:destination="@id/nev_circle_history" />
     </fragment>
 
     <fragment
@@ -37,4 +40,10 @@
         android:name="dev.lordyorden.as_no_phish_detector.ui.AttackHistoryFragment"
         android:label="@string/history"
         tools:layout="@layout/fragment_attack_history" />
+
+    <fragment
+        android:id="@+id/nev_circle_history"
+        android:name="dev.lordyorden.as_no_phish_detector.ui.CircleEventsFragment"
+        android:label="@string/circle_events"
+        tools:layout="@layout/fragment_circle_events" />
 </navigation>

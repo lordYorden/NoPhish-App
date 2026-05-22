@@ -82,7 +82,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
                 arguments: SavedState?
             ) {
                 when (destination.id) {
-                    R.id.nev_history -> {
+                    R.id.nev_history, R.id.nev_circle_history -> {
                         binding.toolbar.visibility = View.GONE
                     }
 

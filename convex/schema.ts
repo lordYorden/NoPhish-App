@@ -40,6 +40,7 @@ export default defineSchema({
         eventId: v.string(),
         contentHash: v.string(),
         packageName: v.optional(v.string()),
+        requiresAction: v.optional(v.boolean()),
     })
     .index("byDate", ["timestamp"])
     .index("byCircleAndDate", ["circleId", "timestamp"])

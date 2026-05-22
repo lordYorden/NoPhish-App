@@ -11,6 +11,7 @@ export const register = mutation({
     eventId: v.string(),
     contentHash: v.string(),
     packageName: v.optional(v.string()),
+    requiresAction: v.boolean(),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -41,6 +42,7 @@ export const register = mutation({
       eventId: args.eventId,
       contentHash: args.contentHash,
       packageName: args.packageName,
+      requiresAction: args.requiresAction,
     });
   },
 });
@@ -72,11 +74,12 @@ export const get = query({
 });
 
 
-export const get_by_circle = mutation({
+export const get_by_circle = query({
   args: {
     circleId: v.string(),
     startTime: v.optional(v.number()),
     endTime: v.optional(v.number()),
+    requiresAction: v.optional(v.boolean()),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
@@ -100,6 +103,12 @@ export const get_by_circle = mutation({
     if (args.endTime !== undefined) {
       eventsQuery = eventsQuery.filter((q) =>
         q.lte(q.field("timestamp"), args.endTime!),
+      );
+    }
+
+    if (args.requiresAction !== undefined) {
+      eventsQuery = eventsQuery.filter((q) =>
+        q.eq(q.field("requiresAction"), args.requiresAction!),
       );
     }
 

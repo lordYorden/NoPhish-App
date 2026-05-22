@@ -31,10 +31,9 @@
             android:layout_height="48dp"
             android:background="@color/surface"
             app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-            android:src="@android:drawable/ic_dialog_alert"
+            android:src="@drawable/ic_warning"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/tertiary" />
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <!-- Time Badge -->
         <com.google.android.material.textview.MaterialTextView
