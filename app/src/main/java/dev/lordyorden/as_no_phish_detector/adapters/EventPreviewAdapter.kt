@@ -41,7 +41,9 @@ class EventPreviewAdapter(
     private fun getItem(position: Int) = events[position]
     
     private fun formatTimestamp(timestampMillis: Long): String {
-        val duration = (System.currentTimeMillis() - timestampMillis).milliseconds
+        val duration = (System.currentTimeMillis() - timestampMillis)
+            .coerceAtLeast(0L)
+            .milliseconds
 
         return when {
             duration.inWholeSeconds < 60 -> "${duration.inWholeSeconds}s ago"
@@ -81,7 +83,10 @@ class EventPreviewAdapter(
         RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                onMemberClick(getItem(bindingAdapterPosition).event)
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onMemberClick(getItem(position).event)
+                }
             }
         }
     }
