@@ -26,9 +26,9 @@ import kotlinx.coroutines.launch
 
 class CircleEventsFragment : Fragment() {
 
-    private lateinit var binding: FragmentCircleEventsBinding
+    private var binding: FragmentCircleEventsBinding? = null
     private lateinit var adapter: CircleEventAdapter
-    private lateinit var renderer: CircleEventsScreenRenderer
+    private var renderer: CircleEventsScreenRenderer? = null
     private lateinit var localStore: MaliciousNotificationStore
     private val viewModel: CircleEventsViewModel by viewModels()
 
@@ -37,12 +37,14 @@ class CircleEventsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentCircleEventsBinding.inflate(inflater, container, false)
+        val viewBinding = FragmentCircleEventsBinding.inflate(inflater, container, false)
+        binding = viewBinding
         initViews()
-        return binding.root
+        return viewBinding.root
     }
 
     private fun initViews() {
+        val binding = binding ?: error("CircleEventsFragment binding is not initialized")
         localStore = MaliciousNotificationStore.getInstance()
         adapter = CircleEventAdapter(
             onDetailsClick = { event ->
@@ -65,7 +67,8 @@ class CircleEventsFragment : Fragment() {
 
         binding.rvCircleEvents.layoutManager = LinearLayoutManager(requireContext())
         binding.rvCircleEvents.adapter = adapter
-        renderer = CircleEventsScreenRenderer(binding, adapter, requireContext())
+        val screenRenderer = CircleEventsScreenRenderer(binding, adapter, requireContext())
+        renderer = screenRenderer
 
         binding.btnCircleEventsRetry.setOnClickListener {
             viewModel.retry()
@@ -97,7 +100,7 @@ class CircleEventsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    renderer.render(state)
+                    screenRenderer.render(state)
                 }
             }
         }
@@ -106,11 +109,17 @@ class CircleEventsFragment : Fragment() {
             ?: requireActivity().intent.extras?.getString(Constants.Circle.CIRCLE_ID_KEY)
         if (circleId.isNullOrBlank()) {
             Log.e(TAG, "CircleEventsFragment opened without a valid circleId")
-            renderer.renderContractError()
+            screenRenderer.renderContractError()
             return
         }
 
         viewModel.start(circleId)
+    }
+
+    override fun onDestroyView() {
+        renderer = null
+        binding = null
+        super.onDestroyView()
     }
 
     companion object {
