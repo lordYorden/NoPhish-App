@@ -71,7 +71,9 @@ class CircleAdapter(
     inner class CircleViewHolder(val binding: ItemCircleMemberBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                onMemberClick(getItem(bindingAdapterPosition))
+                val pos = bindingAdapterPosition
+                if(pos != RecyclerView.NO_POSITION)
+                    onMemberClick(getItem(pos))
             }
         }
     }

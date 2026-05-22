@@ -15,6 +15,7 @@ import com.clerk.api.Clerk
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.models.PermissionRequest
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentSettingsBinding
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import kotlinx.coroutines.launch
 
@@ -43,6 +44,7 @@ class SettingsFragment : Fragment() {
         binding.btnLogout.setOnClickListener {
             lifecycleScope.launch {
                 Clerk.auth.signOut()
+                CircleMembersRepository.getInstance().clearAll()
                 requireActivity().finish()
             }
         }

@@ -4,10 +4,12 @@ import android.util.Log
 import dev.convex.android.ConvexClient
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +45,21 @@ class CircleMembersRepository private constructor(
             ?: throw IllegalStateException("Missing circle member for circleId=$circleId")
     }
 
+    suspend fun clearAll() {
+        val jobs = subscriptionJobs.values.toList()
+        val retainedStates = states.values.toList()
+
+        subscriptionJobs.clear()
+        states.clear()
+
+        jobs.forEach { job ->
+            job.cancelAndJoin()
+        }
+        retainedStates.forEach { state ->
+            state.value = CircleMembersState(circleId = state.value.circleId)
+        }
+    }
+
     private fun stateFor(circleId: String): MutableStateFlow<CircleMembersState> {
         return states.getOrPut(circleId) {
             MutableStateFlow(CircleMembersState(circleId = circleId))
@@ -73,6 +90,7 @@ class CircleMembersRepository private constructor(
                     }
                 }
             } catch (error: Exception) {
+                if (error is CancellationException) throw error
                 publishError(circleId, state, error)
             }
         }

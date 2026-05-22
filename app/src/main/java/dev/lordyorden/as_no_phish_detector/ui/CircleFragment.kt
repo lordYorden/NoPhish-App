@@ -134,7 +134,6 @@ class CircleFragment : Fragment() {
 
         binding.rvCircle.adapter = circleAdapter
 
-        CircleMembersRepository.getInstance().observe(circleId)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 CircleMembersRepository.getInstance().observe(circleId).collect { state ->
