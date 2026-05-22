@@ -38,7 +38,7 @@ class CircleRecentActivityRenderer(
         val previewItems = events.map { event ->
             val member = membersState.membersByUserId[event.userId]
             if (member == null) {
-                Log.e(TAG, "Missing circle member for eventId=${event.eventId}, userId=${event.userId}")
+                Log.e(TAG, "Missing circle member for eventId=${event.eventId}")
                 renderMessage(context.getString(R.string.missing_for_event))
                 return
             }

@@ -40,7 +40,7 @@ class CircleMembersRepository private constructor(
         require(userId.isNotBlank()) { "userId must not be blank" }
 
         return stateFor(circleId).value.membersByUserId[userId]
-            ?: throw IllegalStateException("Missing circle member for circleId=$circleId, userId=$userId")
+            ?: throw IllegalStateException("Missing circle member for circleId=$circleId")
     }
 
     private fun stateFor(circleId: String): MutableStateFlow<CircleMembersState> {

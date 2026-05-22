@@ -161,7 +161,7 @@ class CircleEventsViewModel : ViewModel() {
         val items = latestEvents.map { event ->
             val member = membersState.membersByUserId[event.userId]
             if (member == null) {
-                val message = "Missing circle member for eventId=${event.eventId}, userId=${event.userId}"
+                val message = "Missing circle member for eventId=${event.eventId}"
                 Log.e(TAG, message)
                 _uiState.update {
                     it.copy(

@@ -76,7 +76,7 @@ class CircleFragment : Fragment() {
         }
 
         eventPreviewAdapter = EventPreviewAdapter { event ->
-            Log.d(TAG, "event clicked $event")
+            Log.d(TAG, "event clicked with id: ${event.eventId}")
             viewLifecycleOwner.lifecycleScope.launch {
                 val details = localStore.getValidated(event.eventId, event.contentHash)
                 if (details == null) {
