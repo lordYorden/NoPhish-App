@@ -112,6 +112,7 @@
     <string name="reconnecting_banner">Reconnecting…</string>
     <string name="session_expired">Session expired. Please sign in again.</string>
     <string name="block">block</string>
+    <string name="alerts">Alerts</string>
 
     <plurals name="history_results_plural">
         <item quantity="one">%d result</item>

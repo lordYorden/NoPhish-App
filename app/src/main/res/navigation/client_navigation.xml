@@ -19,7 +19,7 @@
             app:destination="@id/invite_fragment" />
         <action
             android:id="@+id/action_nev_circle_to_circle_events"
-            app:destination="@id/nev_profile" />
+            app:destination="@id/nev_circle_history" />
     </fragment>
 
     <fragment
@@ -42,7 +42,7 @@
         tools:layout="@layout/fragment_attack_history" />
 
     <fragment
-        android:id="@+id/nev_profile"
+        android:id="@+id/nev_circle_history"
         android:name="dev.lordyorden.as_no_phish_detector.ui.CircleEventsFragment"
         android:label="@string/circle_events"
         tools:layout="@layout/fragment_circle_events" />

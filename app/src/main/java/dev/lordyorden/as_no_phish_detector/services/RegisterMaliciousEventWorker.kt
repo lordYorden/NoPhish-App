@@ -56,7 +56,7 @@ class RegisterMaliciousEventWorker(
             "eventId" to payload.eventId,
             "contentHash" to payload.contentHash,
             "packageName" to payload.packageName,
-            //"requiresAction" to true,
+            "requiresAction" to true,
         )
 
         return runCatching {
