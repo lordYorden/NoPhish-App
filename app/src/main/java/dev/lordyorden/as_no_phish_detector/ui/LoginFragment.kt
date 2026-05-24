@@ -31,6 +31,7 @@ import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.clerk.UserStateViewModel
 import dev.lordyorden.as_no_phish_detector.clerk.UserUiState
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentLoginBinding
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.NetworkMonitor
@@ -163,6 +164,8 @@ class LoginFragment : Fragment() {
     }
 
     private fun moveToClient(circleId: String) {
+        CircleMembersRepository.getInstance().setCurrentCircleId(circleId)
+
         val intent = Intent(requireActivity(), ClientActivity::class.java).apply {
             putExtra(Constants.Circle.CIRCLE_ID_KEY, circleId)
         }

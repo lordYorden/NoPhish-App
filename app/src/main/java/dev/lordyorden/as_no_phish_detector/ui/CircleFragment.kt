@@ -148,8 +148,7 @@ class CircleFragment : Fragment() {
     }
 
     private fun getCircleId() {
-        val extra = requireActivity().intent.extras
-        circleId = extra?.getString(Constants.Circle.CIRCLE_ID_KEY, Constants.Circle.CIRCLE_TEMP_ID) ?: Constants.Circle.CIRCLE_TEMP_ID
+        circleId = CircleMembersRepository.getInstance().requireCurrentCircleId()
         Log.d(TAG, "got circleId: $circleId")
     }
 
