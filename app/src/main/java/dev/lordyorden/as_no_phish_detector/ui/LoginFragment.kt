@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -42,6 +43,8 @@ import kotlinx.coroutines.withContext
 class LoginFragment : Fragment() {
     private lateinit var binding: FragmentLoginBinding
     private val userState: UserStateViewModel by viewModels()
+
+    private var dialog: AlertDialog? = null
 
     private var isRunning: Boolean = false
     private var connectionDialogShown: Boolean = false
@@ -116,6 +119,8 @@ class LoginFragment : Fragment() {
                 networkMonitor.isOnline.collect { isOnline ->
                     if (isOnline) {
                         connectionDialogShown = false
+                        dialog?.dismiss()
+                        dialog = null
 
                         if (userState.uiState.value == UserUiState.SignedOut) {
                             enableGoogleButton()
@@ -207,7 +212,7 @@ class LoginFragment : Fragment() {
         if (connectionDialogShown || !isAdded) return
         connectionDialogShown = true
 
-        MaterialAlertDialogBuilder(requireContext())
+        dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.connection_failed_title)
             .setMessage(R.string.connection_failed_message)
             .setPositiveButton(android.R.string.ok, null)
