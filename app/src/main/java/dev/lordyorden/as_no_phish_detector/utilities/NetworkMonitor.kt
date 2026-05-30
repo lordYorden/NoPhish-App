@@ -22,7 +22,11 @@ class NetworkMonitor private constructor(context: Context) {
         }
 
         override fun onLost(network: Network) {
-            _isOnline.value = connectivityManager.hasValidatedInternet()
+            _isOnline.value = false
+        }
+
+        override fun onUnavailable() {
+            _isOnline.value = false
         }
 
         override fun onCapabilitiesChanged(

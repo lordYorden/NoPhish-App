@@ -68,36 +68,31 @@ class LoginFragment : Fragment() {
 
                         UserUiState.Loading -> {
                             if (!NetworkMonitor.getInstance().isOnline.value) {
-                                binding.btnGoogle.alpha = 0.65f
-                                binding.btnGoogle.isEnabled = false
+                                disableGoogleButton()
                                 binding.loading.visibility = View.GONE
                                 showConnectionFailureDialog()
                                 return@collect
                             }
                             connectionDialogShown = false
-                            binding.btnGoogle.alpha = 0.65f
-                            binding.btnGoogle.isEnabled = false
+                            disableGoogleButton()
                             binding.loading.visibility = View.VISIBLE
                         }
 
                         UserUiState.ConnectionFailure -> {
-                            binding.btnGoogle.alpha = 0.65f
-                            binding.btnGoogle.isEnabled = false
+                            disableGoogleButton()
                             binding.loading.visibility = View.GONE
                             showConnectionFailureDialog()
                         }
 
                         UserUiState.SignedOut -> {
                             if (!NetworkMonitor.getInstance().isOnline.value) {
-                                binding.btnGoogle.alpha = 0.65f
-                                binding.btnGoogle.isEnabled = false
+                                disableGoogleButton()
                                 binding.loading.visibility = View.GONE
                                 showConnectionFailureDialog()
                                 return@collect
                             }
                             connectionDialogShown = false
-                            binding.btnGoogle.alpha = 1f
-                            binding.btnGoogle.isEnabled = true
+                            enableGoogleButton()
                             binding.loading.visibility = View.GONE
                         }
                     }
@@ -105,23 +100,44 @@ class LoginFragment : Fragment() {
             }
         }
 
+        observeConnectionState()
+
+        setupPolicySpan()
+        binding.btnGoogle.setOnClickListener {
+            signInWithGoogle()
+        }
+    }
+
+    private fun observeConnectionState() {
+        val networkMonitor = NetworkMonitor.getInstance()
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                NetworkMonitor.getInstance().isOnline.collect { isOnline ->
-                    if (!isOnline) {
-                        binding.btnGoogle.alpha = 0.65f
-                        binding.btnGoogle.isEnabled = false
+                networkMonitor.isOnline.collect { isOnline ->
+                    if (isOnline) {
+                        connectionDialogShown = false
+
+                        if (userState.uiState.value == UserUiState.SignedOut) {
+                            enableGoogleButton()
+                        }
+                    } else {
+                        disableGoogleButton()
                         binding.loading.visibility = View.GONE
                         showConnectionFailureDialog()
                     }
                 }
             }
         }
+    }
 
-        setupPolicySpan()
-        binding.btnGoogle.setOnClickListener {
-            signInWithGoogle()
-        }
+    private fun disableGoogleButton() {
+        binding.btnGoogle.alpha = 0.65f
+        binding.btnGoogle.isEnabled = false
+    }
+
+    private fun enableGoogleButton() {
+        binding.btnGoogle.alpha = 1f
+        binding.btnGoogle.isEnabled = true
     }
 
     private suspend fun fetchAndMoveToClient() {
