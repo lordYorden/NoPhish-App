@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -43,6 +44,8 @@ class LoginFragment : Fragment() {
     private lateinit var binding: FragmentLoginBinding
     private val userState: UserStateViewModel by viewModels()
 
+    private var dialog: AlertDialog? = null
+
     private var isRunning: Boolean = false
     private var connectionDialogShown: Boolean = false
 
@@ -68,36 +71,31 @@ class LoginFragment : Fragment() {
 
                         UserUiState.Loading -> {
                             if (!NetworkMonitor.getInstance().isOnline.value) {
-                                binding.btnGoogle.alpha = 0.65f
-                                binding.btnGoogle.isEnabled = false
+                                disableGoogleButton()
                                 binding.loading.visibility = View.GONE
                                 showConnectionFailureDialog()
                                 return@collect
                             }
                             connectionDialogShown = false
-                            binding.btnGoogle.alpha = 0.65f
-                            binding.btnGoogle.isEnabled = false
+                            disableGoogleButton()
                             binding.loading.visibility = View.VISIBLE
                         }
 
                         UserUiState.ConnectionFailure -> {
-                            binding.btnGoogle.alpha = 0.65f
-                            binding.btnGoogle.isEnabled = false
+                            disableGoogleButton()
                             binding.loading.visibility = View.GONE
                             showConnectionFailureDialog()
                         }
 
                         UserUiState.SignedOut -> {
                             if (!NetworkMonitor.getInstance().isOnline.value) {
-                                binding.btnGoogle.alpha = 0.65f
-                                binding.btnGoogle.isEnabled = false
+                                disableGoogleButton()
                                 binding.loading.visibility = View.GONE
                                 showConnectionFailureDialog()
                                 return@collect
                             }
                             connectionDialogShown = false
-                            binding.btnGoogle.alpha = 1f
-                            binding.btnGoogle.isEnabled = true
+                            enableGoogleButton()
                             binding.loading.visibility = View.GONE
                         }
                     }
@@ -105,23 +103,46 @@ class LoginFragment : Fragment() {
             }
         }
 
+        observeConnectionState()
+
+        setupPolicySpan()
+        binding.btnGoogle.setOnClickListener {
+            signInWithGoogle()
+        }
+    }
+
+    private fun observeConnectionState() {
+        val networkMonitor = NetworkMonitor.getInstance()
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                NetworkMonitor.getInstance().isOnline.collect { isOnline ->
-                    if (!isOnline) {
-                        binding.btnGoogle.alpha = 0.65f
-                        binding.btnGoogle.isEnabled = false
+                networkMonitor.isOnline.collect { isOnline ->
+                    if (isOnline) {
+                        connectionDialogShown = false
+                        dialog?.dismiss()
+                        dialog = null
+
+                        if (userState.uiState.value == UserUiState.SignedOut) {
+                            enableGoogleButton()
+                        }
+                    } else {
+                        disableGoogleButton()
                         binding.loading.visibility = View.GONE
                         showConnectionFailureDialog()
                     }
                 }
             }
         }
+    }
 
-        setupPolicySpan()
-        binding.btnGoogle.setOnClickListener {
-            signInWithGoogle()
-        }
+    private fun disableGoogleButton() {
+        binding.btnGoogle.alpha = 0.65f
+        binding.btnGoogle.isEnabled = false
+    }
+
+    private fun enableGoogleButton() {
+        binding.btnGoogle.alpha = 1f
+        binding.btnGoogle.isEnabled = true
     }
 
     private suspend fun fetchAndMoveToClient() {
@@ -191,7 +212,7 @@ class LoginFragment : Fragment() {
         if (connectionDialogShown || !isAdded) return
         connectionDialogShown = true
 
-        MaterialAlertDialogBuilder(requireContext())
+        dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.connection_failed_title)
             .setMessage(R.string.connection_failed_message)
             .setPositiveButton(android.R.string.ok, null)
