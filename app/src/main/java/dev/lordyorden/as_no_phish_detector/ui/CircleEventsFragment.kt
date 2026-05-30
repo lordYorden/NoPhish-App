@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleEventsBinding
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleAlertScope
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleEventAdapter
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleEventsScreenRenderer
@@ -106,7 +107,7 @@ class CircleEventsFragment : Fragment() {
         }
 
         val circleId = arguments?.getString(Constants.Circle.CIRCLE_ID_KEY)
-            ?: requireActivity().intent.extras?.getString(Constants.Circle.CIRCLE_ID_KEY)
+            ?: CircleMembersRepository.getInstance().currentCircleId()
         if (circleId.isNullOrBlank()) {
             Log.e(TAG, "CircleEventsFragment opened without a valid circleId")
             screenRenderer.renderContractError()

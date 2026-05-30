@@ -3,6 +3,7 @@ package dev.lordyorden.as_no_phish_detector.repositories
 import android.util.Log
 import dev.convex.android.ConvexClient
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
+import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -19,8 +20,28 @@ class CircleMembersRepository private constructor(
     private val client: ConvexClient,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val currentCircleId = MutableStateFlow<String?>(null)
     private val states = mutableMapOf<String, MutableStateFlow<CircleMembersState>>()
     private val subscriptionJobs = mutableMapOf<String, Job>()
+
+    fun setCurrentCircleId(circleId: String) {
+        require(circleId.isNotBlank()) { "circleId must not be blank" }
+        require(circleId != Constants.Onboarding.ACTION_GENERATE) {
+            "circleId must be a real circle id"
+        }
+
+        currentCircleId.value = circleId
+        observe(circleId)
+    }
+
+    fun currentCircleId(): String? {
+        return currentCircleId.value
+    }
+
+    fun requireCurrentCircleId(): String {
+        return currentCircleId.value
+            ?: throw IllegalStateException("Current circleId is not set")
+    }
 
     fun observe(circleId: String): StateFlow<CircleMembersState> {
         require(circleId.isNotBlank()) { "circleId must not be blank" }
@@ -51,6 +72,7 @@ class CircleMembersRepository private constructor(
 
         subscriptionJobs.clear()
         states.clear()
+        currentCircleId.value = null
 
         jobs.forEach { job ->
             job.cancelAndJoin()

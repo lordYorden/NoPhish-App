@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentInviteToCircleBinding
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
@@ -108,8 +109,7 @@ class InviteToCircleFragment : Fragment() {
     }
 
     private fun getCircleId() {
-        val extra = requireActivity().intent.extras
-        circleId = extra?.getString(Constants.Circle.CIRCLE_ID_KEY, Constants.Circle.CIRCLE_TEMP_ID) ?: Constants.Circle.CIRCLE_TEMP_ID
+        circleId = CircleMembersRepository.getInstance().requireCurrentCircleId()
         Log.d(CircleFragment.TAG, "got circleId: $circleId")
     }
 

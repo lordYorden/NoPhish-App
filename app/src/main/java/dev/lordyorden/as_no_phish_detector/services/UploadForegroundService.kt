@@ -22,6 +22,7 @@ import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.models.CapturedNotificationPayload
 import dev.lordyorden.as_no_phish_detector.models.PendingNotificationUpload
 import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
 import dev.lordyorden.as_no_phish_detector.retrofit.SmsController
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
@@ -231,6 +232,7 @@ class UploadForegroundService : LifecycleService() {
         val rel = RelentNotificationInfo(
             eventId = payload.eventId,
             sourceUserId = sourceUserId,
+            circleId = CircleMembersRepository.getInstance().currentCircleId(),
             title = payload.title,
             body = payload.body,
             packageName = payload.packageName,

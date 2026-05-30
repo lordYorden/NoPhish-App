@@ -24,11 +24,13 @@ import dev.lordyorden.as_no_phish_detector.databinding.ActivityClientBinding
 import dev.lordyorden.as_no_phish_detector.databinding.AttackDetailsBottomSheetBinding
 import dev.lordyorden.as_no_phish_detector.databinding.UrlItemBinding
 import dev.lordyorden.as_no_phish_detector.models.AttackDetails
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.services.FCMService
 import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.clerk.UserStateViewModel
 import dev.lordyorden.as_no_phish_detector.clerk.UserUiState
 import dev.lordyorden.as_no_phish_detector.ui.settings.PermsViewModel
+import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
@@ -133,7 +135,14 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 userStateViewModel.uiState.collect { userState ->
                     when (userState) {
-                        UserUiState.SignedIn -> signedInObserved = true
+                        UserUiState.SignedIn -> {
+                            signedInObserved = true
+                            runCatching {
+                                ensureCurrentCircleId()
+                            }.onFailure { error ->
+                                Log.e(TAG, "Failed to ensure current circle id", error)
+                            }
+                        }
 
                         UserUiState.SignedOut -> {
                             if (signedInObserved && !signedOutHandled) {
@@ -157,6 +166,21 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
                 }
             }
         }
+    }
+
+    private suspend fun ensureCurrentCircleId() {
+        val circleMembersRepository = CircleMembersRepository.getInstance()
+        if (circleMembersRepository.currentCircleId() != null) return
+
+        val circleId = ConvexHelper.getInstance()
+            .convexClient
+            .mutation<String>("circles:get_my_circles")
+
+        if (circleId == Constants.Onboarding.ACTION_GENERATE) {
+            throw IllegalStateException("Authenticated user has no circle")
+        }
+
+        circleMembersRepository.setCurrentCircleId(circleId)
     }
 
     private fun setupFCM() {

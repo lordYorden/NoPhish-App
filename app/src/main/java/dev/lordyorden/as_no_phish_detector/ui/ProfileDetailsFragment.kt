@@ -18,6 +18,7 @@ import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentProfileDetailsBinding
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Task
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
@@ -78,6 +79,7 @@ class ProfileDetailsFragment : Fragment() {
                 "familyRole" to familyRole,
                 "avatarUrl" to avatarUrl
             ))
+            CircleMembersRepository.getInstance().setCurrentCircleId(circleId)
 
             //move to client activity
             val intent = Intent(requireActivity(), ClientActivity::class.java).apply {
