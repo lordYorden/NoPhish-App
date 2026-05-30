@@ -29,7 +29,7 @@ class NetworkMonitor private constructor(context: Context) {
             network: Network,
             networkCapabilities: NetworkCapabilities
         ) {
-            _isOnline.value = connectivityManager.hasValidatedInternet()
+            _isOnline.value = networkCapabilities.hasValidatedInternet()
         }
     }
 
@@ -57,6 +57,10 @@ class NetworkMonitor private constructor(context: Context) {
 private fun ConnectivityManager.hasValidatedInternet(): Boolean {
     val network = activeNetwork ?: return false
     val capabilities = getNetworkCapabilities(network) ?: return false
-    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    return capabilities.hasValidatedInternet()
+}
+
+private fun NetworkCapabilities.hasValidatedInternet(): Boolean {
+    return hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+        hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 }

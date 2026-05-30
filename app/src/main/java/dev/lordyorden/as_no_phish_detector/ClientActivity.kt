@@ -19,7 +19,6 @@ import com.clerk.api.Clerk
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
 import com.vmadalin.easypermissions.EasyPermissions
-import dev.convex.android.WebSocketState
 import dev.lordyorden.as_no_phish_detector.databinding.ActivityClientBinding
 import dev.lordyorden.as_no_phish_detector.databinding.AttackDetailsBottomSheetBinding
 import dev.lordyorden.as_no_phish_detector.databinding.UrlItemBinding
@@ -35,7 +34,6 @@ import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
 import dev.lordyorden.as_no_phish_detector.utilities.NetworkMonitor
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
@@ -100,30 +98,15 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
 
     private fun observeConnectionState() {
         val networkMonitor = NetworkMonitor.getInstance()
-        val convexClient = ConvexHelper.getInstance().convexClient
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                combine(
-                    networkMonitor.isOnline,
-                    convexClient.webSocketStateFlow
-                ) { isOnline, webSocketState ->
-                    isOnline to webSocketState
-                }.collect { (isOnline, webSocketState) ->
-                    when {
-                        !isOnline -> {
-                            binding.offlineBanner.text = getString(R.string.offline_banner)
-                            binding.offlineBanner.visibility = View.VISIBLE
-                        }
-
-                        webSocketState != WebSocketState.CONNECTED -> {
-                            binding.offlineBanner.text = getString(R.string.reconnecting_banner)
-                            binding.offlineBanner.visibility = View.VISIBLE
-                        }
-
-                        else -> {
-                            binding.offlineBanner.visibility = View.GONE
-                        }
+                networkMonitor.isOnline.collect { isOnline ->
+                    if (isOnline) {
+                        binding.offlineBanner.visibility = View.GONE
+                    } else {
+                        binding.offlineBanner.text = getString(R.string.offline_banner)
+                        binding.offlineBanner.visibility = View.VISIBLE
                     }
                 }
             }
