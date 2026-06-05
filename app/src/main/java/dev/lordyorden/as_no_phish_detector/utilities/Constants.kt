@@ -2,7 +2,7 @@ package dev.lordyorden.as_no_phish_detector.utilities
 
 class Constants {
     object RestAPI{
-        const val BASE_URL = "http://localhost:9000"
+        const val BASE_URL = "https://localhost:9000"
     }
 
     object Perms {

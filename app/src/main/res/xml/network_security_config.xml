@@ -4,4 +4,14 @@
         <domain includeSubdomains="true">enjoyed-flounder-refined.ngrok-free.app</domain>
         <domain includeSubdomains="true">localhost</domain>
     </domain-config>
+
+    <base-config>
+        <trust-anchors>
+            <!-- Trust the standard built-in system certificates -->
+            <certificates src="system" />
+
+            <!-- Trust your custom certificate registered in raw resources -->
+            <certificates src="@raw/server" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>
