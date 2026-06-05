@@ -51,10 +51,10 @@ export const get_my_circles = mutation({
             throw new Error("Unauthenticated");
         }
 
-        const circle = await ctx.db.query("cricle")
-            .filter((q) => q.eq(q.field("ownerId"), identity.subject))
+        const memeberRecord = await ctx.db.query("otpCodes")
+            .filter((q) => q.eq(q.field("memberId"), identity.subject))
             .first();
 
-        return circle?._id ?? GENERATE_CIRCLE;
+        return memeberRecord?.circleId ?? GENERATE_CIRCLE;
     }
 })
