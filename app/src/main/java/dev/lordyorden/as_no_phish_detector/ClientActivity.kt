@@ -59,7 +59,6 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
 
     private fun initViews() {
         setupNav()
-        setupFCM()
         observeConnectionState()
         observeAuthState()
 
@@ -122,6 +121,8 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
                             signedInObserved = true
                             runCatching {
                                 ensureCurrentCircleId()
+                                val circleId = CircleMembersRepository.getInstance().requireCurrentCircleId()
+                                setupFCM(circleId)
                             }.onFailure { error ->
                                 Log.e(TAG, "Failed to ensure current circle id", error)
                             }
@@ -166,8 +167,11 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         circleMembersRepository.setCurrentCircleId(circleId)
     }
 
-    private fun setupFCM() {
-        FirebaseMessaging.getInstance().subscribeToTopic("test_topic")
+    private fun setupFCM(circleId: String) {
+
+        val topicName = "circle_$circleId"
+
+        FirebaseMessaging.getInstance().subscribeToTopic(topicName)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("FCM", "Successfully subscribed to topic!")
