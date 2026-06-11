@@ -2,6 +2,7 @@ package dev.lordyorden.as_no_phish_detector.ui.events
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import dev.lordyorden.as_no_phish_detector.R
@@ -59,11 +60,11 @@ class CircleEventAdapter(
         }
 
         fun bind(item: CircleEventUiItem) {
-            val context = binding.root.context
             val event = item.event
             binding.tvTitle.text = event.action
             binding.tvName.text = item.member.name
             binding.tvTime.text = formatTimestamp(event.timestamp.toLong())
+            binding.llcAction.isVisible = event.requiresAction == true
 
             event.packageName?.let {
                 ImageLoader.getInstance().loadAppIcon(it, binding.ivAppSource, R.drawable.ic_phone)

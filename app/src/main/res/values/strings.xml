@@ -113,6 +113,7 @@
     <string name="session_expired">Session expired. Please sign in again.</string>
     <string name="block">Block</string>
     <string name="alerts">Alerts</string>
+    <string name="resolve_btn_text">Resolve</string>
 
     <plurals name="history_results_plural">
         <item quantity="one">%d result</item>
