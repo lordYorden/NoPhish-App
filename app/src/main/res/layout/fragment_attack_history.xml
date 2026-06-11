@@ -30,10 +30,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/plus_jakarta_sans"
+                    android:textStyle="bold"
                     android:text="@string/history_subtitle"
-                    android:textAllCaps="true"
                     android:textColor="@color/primary"
-                    android:textSize="18sp" />
+                    android:textSize="22sp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/tv_result_count"
@@ -50,55 +50,70 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <!-- Filter Chips -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="12dp"
                 android:scrollbars="none">
 
-                <com.google.android.material.chip.ChipGroup
+                <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/chip_group_filter"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    app:checkedButton="@id/chip_all_time"
                     app:selectionRequired="true"
                     app:singleSelection="true">
 
-                    <com.google.android.material.chip.Chip
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/chip_all_time"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
+                        android:layout_height="match_parent"
+                        android:fontFamily="@font/plus_jakarta_sans"
                         android:text="@string/chip_time_text"
-                        app:chipBackgroundColor="@color/chip_color_state"
-                        app:chipStrokeColor="@color/surface_text"
-                        app:chipStrokeWidth="1dp" />
+                        android:textAllCaps="false"
+                        android:textColor="@color/alert_scope_button_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="@color/alert_scope_button_bg"
+                        app:checkedIcon="@null"
+                        app:strokeColor="@color/alert_scope_button_stroke"
+                        app:strokeWidth="1dp" />
 
-                    <com.google.android.material.chip.Chip
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/chip_last_7"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
+                        android:fontFamily="@font/plus_jakarta_sans"
                         android:text="@string/chip_7_text"
-                        app:chipBackgroundColor="@color/chip_color_state"
-                        app:chipStrokeColor="@color/surface_text"
-                        app:chipStrokeWidth="1dp" />
+                        android:textAllCaps="false"
+                        android:textColor="@color/alert_scope_button_text"
+                        android:textSize="16sp"
+                        app:backgroundTint="@color/alert_scope_button_bg"
+                        app:checkedIcon="@null"
+                        app:strokeColor="@color/alert_scope_button_stroke"
+                        app:strokeWidth="1dp" />
 
-                    <com.google.android.material.chip.Chip
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/chip_last_30"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
+                        android:fontFamily="@font/plus_jakarta_sans"
                         android:text="@string/chip_30_text"
-                        app:chipBackgroundColor="@color/chip_color_state"
-                        app:chipStrokeColor="@color/surface_text"
-                        app:chipStrokeWidth="1dp" />
+                        android:textAllCaps="false"
+                        android:textColor="@color/alert_scope_button_text"
+                        android:textSize="16sp"
+                        app:backgroundTint="@color/alert_scope_button_bg"
+                        app:checkedIcon="@null"
+                        app:strokeColor="@color/alert_scope_button_stroke"
+                        app:strokeWidth="1dp" />
 
-                </com.google.android.material.chip.ChipGroup>
+                </com.google.android.material.button.MaterialButtonToggleGroup>
             </HorizontalScrollView>
         </androidx.appcompat.widget.LinearLayoutCompat>
 

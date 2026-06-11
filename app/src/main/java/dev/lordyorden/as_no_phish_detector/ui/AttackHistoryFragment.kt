@@ -49,8 +49,9 @@ class AttackHistoryFragment : Fragment() {
 
             tvResultCount.text = getString(R.string.zero_result)
 
-            chipGroupFilter.setOnCheckedStateChangeListener { chipGroup, _ ->
-                when(chipGroup.checkedChipId){
+            chipGroupFilter.addOnButtonCheckedListener { _, checkedId, isChecked ->
+                if (!isChecked) return@addOnButtonCheckedListener
+                when(checkedId){
                     R.id.chip_last_7 -> {
                         viewModel.startTime = Clock.System.now() - 7.days
                     }
