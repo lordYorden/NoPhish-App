@@ -116,6 +116,31 @@ export const get_by_circle = query({
   },
 });
 
+export const get_recent_by_circle = query({
+  args: {
+    circleId: v.string(),
+    limit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (!Number.isInteger(args.limit) || args.limit <= 0) {
+      throw new Error("limit must be a positive integer");
+    }
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthenticated");
+    }
+
+    await assertCircleMember(ctx, args.circleId, identity.subject);
+
+    return await ctx.db
+      .query("event")
+      .withIndex("byCircleAndDate", (q) => q.eq("circleId", args.circleId))
+      .order("desc")
+      .take(args.limit);
+  },
+});
+
 export const getByEventId = query({
   args: {
     eventId: v.string(),

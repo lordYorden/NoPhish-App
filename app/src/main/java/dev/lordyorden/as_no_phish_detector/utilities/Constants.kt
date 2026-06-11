@@ -27,6 +27,8 @@ class Constants {
         const val CIRCLE_TEMP_ID = "jn7e7gmjn4ztprcbff91grwznx84wkad"
         const val CIRCLE_CODE_KEY = "JoinCode"
         const val CIRCLE_ID_KEY = "circleId"
+
+        const val RECENT_EVENT_LIMIT = 5.0
     }
 
     object UploadScheduler {

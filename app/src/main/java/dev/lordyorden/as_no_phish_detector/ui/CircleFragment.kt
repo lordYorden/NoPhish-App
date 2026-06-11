@@ -21,12 +21,13 @@ import dev.lordyorden.as_no_phish_detector.adapters.EventPreviewAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
 import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBinding
 import dev.lordyorden.as_no_phish_detector.models.Event
-import dev.lordyorden.as_no_phish_detector.models.PaginationResult
 import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleRecentActivityRenderer
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class CircleFragment : Fragment() {
@@ -37,7 +38,7 @@ class CircleFragment : Fragment() {
     private lateinit var eventPreviewAdapter: EventPreviewAdapter
     private lateinit var recentActivityRenderer: CircleRecentActivityRenderer
     private lateinit var localStore: MaliciousNotificationStore
-    private var recentEvents: List<Event> = emptyList()
+    private val recentEvents = MutableStateFlow<List<Event>>(emptyList())
 
     private lateinit var circleId: String
 
@@ -107,9 +108,25 @@ class CircleFragment : Fragment() {
             findNavController().navigate(R.id.action_nev_circle_to_circle_events, bundle)
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                getRecentCircleEvents()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    getRecentCircleEvents()
+                }
+
+                launch {
+                    combine(
+                        recentEvents,
+                        CircleMembersRepository.getInstance().observe(circleId),
+                    ) { events, membersState ->
+                        events to membersState
+                    }.collect { (events, membersState) ->
+                        recentActivityRenderer.render(
+                            events = events,
+                            membersState = membersState,
+                        )
+                    }
+                }
             }
         }
     }
@@ -123,9 +140,6 @@ class CircleFragment : Fragment() {
             state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
-
-
-
         binding.rvCircle.layoutManager = LinearLayoutManager(requireContext())
 
         circleAdapter = CircleAdapter { member ->
@@ -134,14 +148,13 @@ class CircleFragment : Fragment() {
 
         binding.rvCircle.adapter = circleAdapter
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 CircleMembersRepository.getInstance().observe(circleId).collect { state ->
                     state.errorMessage?.let { message ->
                         Log.e(TAG, "Failed to fetch members: $message")
                     }
                     circleAdapter.submitList(state.members)
-                    renderRecentActivity()
                 }
             }
         }
@@ -156,31 +169,18 @@ class CircleFragment : Fragment() {
         val client = ConvexHelper.getInstance().convexClient
         val args = mapOf(
             "circleId" to circleId,
-            "paginationOpts" to mapOf(
-                "cursor" to null,
-                "numItems" to 5f
-            )
+            "limit" to Constants.Circle.RECENT_EVENT_LIMIT
         )
 
-        client.subscribe<PaginationResult<Event>>("events:get_by_circle", args).collect { result ->
-            result.onSuccess { page ->
-                recentEvents = page.page
-                renderRecentActivity()
+        client.subscribe<List<Event>>("events:get_recent_by_circle", args).collect { result ->
+            result.onSuccess { events ->
+                recentEvents.value = events
             }.onFailure { error ->
                 Log.e(TAG, "Failed to fetch recent circle events", error)
                 recentActivityRenderer.renderError()
             }
         }
     }
-
-    private fun renderRecentActivity() {
-        recentActivityRenderer.render(
-            events = recentEvents,
-            membersState = CircleMembersRepository.getInstance().currentState(circleId),
-        )
-    }
-
-
 
     companion object {
         const val TAG: String = "CircleFragment"
