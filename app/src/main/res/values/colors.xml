@@ -18,6 +18,7 @@
 
     <!-- Tertiary - Terracotta/Dusty Rose (#E5A99B) -->
     <color name="tertiary">#E5A99B</color>
+    <color name="protection_off">#B25E4C</color>
     <color name="on_tertiary">#4B1D14</color>
     <color name="tertiary_container">#FFDAD3</color>
     <color name="on_tertiary_container">#3A0A03</color>

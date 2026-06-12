@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingTop="42dp">
+
+    <FrameLayout
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_circles_off"
+        android:contentDescription="@string/protection_is_off"
+        android:padding="22dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+
+            android:tint="@color/protection_off"
+            android:layout_gravity="center"
+            android:contentDescription="@string/protection_is_off"
+            android:src="@drawable/ic_shield_alert" />
+
+    </FrameLayout>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/plus_jakarta_sans"
+        android:text="@string/protection_is_off"
+        android:textColor="@color/protection_off"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/plus_jakarta_sans"
+        android:gravity="center"
+        android:ems="15"
+        android:text="@string/protection_off_body"
+        android:textSize="16sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_turn_on_protection"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:text="@string/turn_on_protection"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/plus_jakarta_sans"
+        android:textAllCaps="false"
+        android:textColor="@color/on_surface"
+        android:textSize="15sp"
+        android:layout_marginTop="5dp"
+        app:iconGravity="textEnd"
+        app:icon="@drawable/ic_arrow_right"
+        app:iconTint="@color/protection_off"
+        app:rippleColor="@color/tertiary_container" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

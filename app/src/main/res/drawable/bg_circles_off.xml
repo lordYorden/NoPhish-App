@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1. The outermost transparent/faint ring -->
+    <item>
+        <shape android:shape="oval">
+            <!-- Using an 8-digit hex code: #1A is approx 10% opacity -->
+            <solid android:color="#1AAF8E90" />
+            <size
+                android:width="250dp"
+                android:height="250dp"
+                />
+        </shape>
+    </item>
+
+
+
+    <!-- 3. The main solid sage-green circle -->
+    <item
+        android:bottom="45dp"
+        android:left="45dp"
+        android:right="45dp"
+        android:top="45dp"
+        >
+        <shape android:shape="oval">
+            <solid android:color="@color/protection_off" />
+        </shape>
+    </item>
+
+    <!-- 4. The small white circle that sits under the checkmark -->
+    <item
+        android:bottom="90dp"
+        android:left="90dp"
+        android:right="90dp"
+        android:top="90dp"
+        >
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+
+</layer-list>
