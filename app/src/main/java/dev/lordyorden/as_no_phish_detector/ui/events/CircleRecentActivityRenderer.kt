@@ -21,14 +21,14 @@ class CircleRecentActivityRenderer(
         events: List<Event>,
         membersState: CircleMembersState,
     ) {
-        if (events.isEmpty()) {
-            renderedFirstEventId = null
-            renderMessage(context.getString(R.string.circle_events_empty))
+        if (membersState.errorMessage != null) {
+            renderError()
             return
         }
 
-        if (membersState.errorMessage != null) {
-            renderError()
+        if (events.isEmpty()) {
+            renderedFirstEventId = null
+            renderMessage(context.getString(R.string.circle_events_empty))
             return
         }
 
