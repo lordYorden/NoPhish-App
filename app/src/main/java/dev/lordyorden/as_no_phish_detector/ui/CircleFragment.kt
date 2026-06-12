@@ -1,11 +1,19 @@
 package dev.lordyorden.as_no_phish_detector.ui
 
+import android.Manifest
+import android.content.ComponentName
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -14,6 +22,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.vmadalin.easypermissions.EasyPermissions
+import com.vmadalin.easypermissions.models.PermissionRequest
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.adapters.CircleAdapter
@@ -22,6 +32,7 @@ import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
 import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBinding
 import dev.lordyorden.as_no_phish_detector.models.Event
 import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
+import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleRecentActivityRenderer
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
@@ -56,6 +67,7 @@ class CircleFragment : Fragment() {
 
         localStore = MaliciousNotificationStore.getInstance()
         getCircleId()
+        setupProtectionStatus()
         setUpRecentActivity()
         setupBottomSheet()
         binding.btnAdd.setOnClickListener {
@@ -68,6 +80,78 @@ class CircleFragment : Fragment() {
         }
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        renderProtectionStatus()
+    }
+
+    private fun setupProtectionStatus() {
+        binding.sectionProtectionOffStatus.btnTurnOnProtection.setOnClickListener {
+            when {
+                !isNotificationListenerEnabled() -> {
+                    startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                }
+
+                !isPostNotificationGranted() -> {
+                    requestPostNotificationPermission()
+                }
+            }
+        }
+
+        renderProtectionStatus()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                UploadForegroundService.isRunning.collect {
+                    renderProtectionStatus()
+                }
+            }
+        }
+    }
+
+    private fun renderProtectionStatus() {
+        val protected = hasProtectionRequirements()
+        binding.sectionProtectedStatus.root.visibility = if (protected) View.VISIBLE else View.GONE
+        binding.sectionProtectionOffStatus.root.visibility = if (protected) View.GONE else View.VISIBLE
+    }
+
+    private fun hasProtectionRequirements(): Boolean {
+        return UploadForegroundService.isRunning.value &&
+            isNotificationListenerEnabled() &&
+            isPostNotificationGranted()
+    }
+
+    private fun isNotificationListenerEnabled(): Boolean {
+        val enabledListeners = Settings.Secure.getString(
+            requireContext().contentResolver,
+            "enabled_notification_listeners"
+        ) ?: return false
+
+        return enabledListeners.split(':').any { flattenedComponent ->
+            val componentName = ComponentName.unflattenFromString(flattenedComponent)
+            componentName?.packageName == requireContext().packageName
+        }
+    }
+
+    private fun isPostNotificationGranted(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPostNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val request = PermissionRequest.Builder(requireActivity())
+            .code(Constants.Perms.POST_NOTIFICATION_CODE)
+            .perms(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+            .build()
+        EasyPermissions.requestPermissions(requireActivity(), request)
     }
 
     private fun setUpRecentActivity() {

@@ -20,9 +20,19 @@
             android:clipToPadding="false">
 
             <!--Protected Status Section-->
-            <include layout="@layout/section_protected_status"
+            <include
+                android:id="@+id/section_protected_status"
+                layout="@layout/section_protected_status"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_width="match_parent"/>
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/section_protection_off_status"
+                layout="@layout/section_protection_off_status"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
 
             <include
                 android:id="@+id/section_recent"
