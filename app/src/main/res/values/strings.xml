@@ -21,6 +21,9 @@
     <string name="your_close_circle">Your Close Circle</string>
     <string name="real_time_protection">Real-time protection is active across all your messages and notifications.</string>
     <string name="you_are_protected">You are protected.</string>
+    <string name="protection_is_off">Protection is Off</string>
+    <string name="protection_off_body">Your real-time security is currently inactive. You are not being monitored for scams.</string>
+    <string name="turn_on_protection">Check Permissions</string>
     <string name="watching_over">Watching over you</string>
     <string name="invitation_sent">Invitation sent</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -82,7 +85,7 @@
     <string name="view_all">View All</string>
     <string name="recent_activity">Recent Activity</string>
     <string name="timestemp_temp">2m ago</string>
-    <string name="history_subtitle">recent interception</string>
+    <string name="history_subtitle">Recent Interception</string>
     <string name="chip_30_text">Last Month</string>
     <string name="chip_7_text">Last week</string>
     <string name="chip_time_text">All Time</string>
@@ -113,6 +116,8 @@
     <string name="session_expired">Session expired. Please sign in again.</string>
     <string name="block">Block</string>
     <string name="alerts">Alerts</string>
+    <string name="resolve_btn_text">Resolve</string>
+    <string name="general_error_redirect">Something went wrong, returning to login</string>
 
     <plurals name="history_results_plural">
         <item quantity="one">%d result</item>

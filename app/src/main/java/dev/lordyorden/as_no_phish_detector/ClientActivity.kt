@@ -11,10 +11,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import androidx.savedstate.SavedState
 import com.clerk.api.Clerk
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
@@ -45,6 +43,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
     private lateinit var navController: NavController
     private var signedInObserved = false
     private var signedOutHandled = false
+    private var clientGraphInitialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +51,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         binding = ActivityClientBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setCurrentCircleIdFromIntent(intent)
         //startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
         initViews()
         handleIntent(intent)
@@ -73,25 +73,17 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
             true
         }
 
-        navController.addOnDestinationChangedListener(object :
-            NavController.OnDestinationChangedListener {
-            override fun onDestinationChanged(
-                controller: NavController,
-                destination: NavDestination,
-                arguments: SavedState?
-            ) {
-                when (destination.id) {
-                    R.id.nev_history, R.id.nev_circle_history -> {
-                        binding.toolbar.visibility = View.GONE
-                    }
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.nev_history, R.id.nev_circle_history -> {
+                    binding.toolbar.visibility = View.GONE
+                }
 
-                    else -> {
-                        binding.toolbar.visibility = View.VISIBLE
-                    }
+                else -> {
+                    binding.toolbar.visibility = View.VISIBLE
                 }
             }
-
-        })
+        }
 
     }
 
@@ -120,28 +112,33 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
                         UserUiState.SignedIn -> {
                             signedInObserved = true
                             runCatching {
-                                ensureCurrentCircleId()
-                                val circleId = CircleMembersRepository.getInstance().requireCurrentCircleId()
+                                val circleId = ensureCurrentCircleId()
                                 setupFCM(circleId)
+                                setupClientGraph()
                             }.onFailure { error ->
                                 Log.e(TAG, "Failed to ensure current circle id", error)
+                                if (error !is MissingCircleException) {
+                                    Toast.makeText(
+                                        this@ClientActivity,
+                                        getString(R.string.general_error_redirect),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                moveToMainActivity()
                             }
                         }
 
                         UserUiState.SignedOut -> {
-                            if (signedInObserved && !signedOutHandled) {
+                            if (!signedOutHandled) {
                                 signedOutHandled = true
-                                Toast.makeText(
-                                    this@ClientActivity,
-                                    getString(R.string.session_expired),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                startActivity(
-                                    Intent(this@ClientActivity, MainActivity::class.java).apply {
-                                        flags =
-                                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                    }
-                                )
+                                if (signedInObserved) {
+                                    Toast.makeText(
+                                        this@ClientActivity,
+                                        getString(R.string.session_expired),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                moveToMainActivity()
                             }
                         }
 
@@ -152,19 +149,26 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         }
     }
 
-    private suspend fun ensureCurrentCircleId() {
+    private suspend fun ensureCurrentCircleId(): String {
         val circleMembersRepository = CircleMembersRepository.getInstance()
-        if (circleMembersRepository.currentCircleId() != null) return
+        circleMembersRepository.currentCircleId()?.let { cachedCircleId ->
+            if (cachedCircleId == Constants.Onboarding.ACTION_GENERATE) {
+                throw MissingCircleException()
+            }
+            return cachedCircleId
+        }
+
 
         val circleId = ConvexHelper.getInstance()
             .convexClient
             .mutation<String>("circles:get_my_circles")
 
         if (circleId == Constants.Onboarding.ACTION_GENERATE) {
-            throw IllegalStateException("Authenticated user has no circle")
+            throw MissingCircleException()
         }
 
         circleMembersRepository.setCurrentCircleId(circleId)
+        return circleId
     }
 
     private fun setupFCM(circleId: String) {
@@ -187,6 +191,8 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_client) as NavHostFragment
         navController = navHostFragment.navController
+        binding.toolbar.visibility = View.GONE
+        navView.visibility = View.GONE
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
 //        val appBarConfiguration = AppBarConfiguration(
@@ -197,6 +203,27 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         //setupActionBarWithNavController(navController, appBarConfiguration)
 
         navView.setupWithNavController(navController)
+    }
+
+    private fun setupClientGraph() {
+        if (clientGraphInitialized) return
+
+        navController.setGraph(R.navigation.client_navigation)
+        binding.navView.visibility = View.VISIBLE
+        clientGraphInitialized = true
+    }
+
+    private fun setCurrentCircleIdFromIntent(intent: Intent) {
+        val circleId = intent.getStringExtra(Constants.Circle.CIRCLE_ID_KEY) ?: return
+        CircleMembersRepository.getInstance().setCurrentCircleId(circleId)
+    }
+
+    private fun moveToMainActivity() {
+        startActivity(
+            Intent(this@ClientActivity, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        )
     }
 
 
@@ -251,6 +278,7 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
         super.onNewIntent(intent)
         setIntent(intent)
         Clerk.auth.handle(intent.data)
+        setCurrentCircleIdFromIntent(intent)
         handleIntent(intent)
     }
 
@@ -312,4 +340,6 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
     companion object {
         const val TAG = "ClientActivity"
     }
+
+    private class MissingCircleException : IllegalStateException("Authenticated user has no circle")
 }

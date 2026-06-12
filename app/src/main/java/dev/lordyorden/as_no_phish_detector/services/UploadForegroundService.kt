@@ -30,6 +30,9 @@ import dev.lordyorden.as_no_phish_detector.utilities.PendingNotificationUploadSt
 import dev.lordyorden.as_no_phish_detector.utilities.SecureNotificationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -74,6 +77,7 @@ class UploadForegroundService : LifecycleService() {
                 isServiceRunningRightNow = true
                 notifyToUserForForegroundService()
             }
+            _isRunning.value = true
 
             lifecycleScope.launch {
                 flushPendingUploads()
@@ -82,6 +86,7 @@ class UploadForegroundService : LifecycleService() {
         } else if (action == ACTION_STOP) {
             stopHandlingMassages()
             isServiceRunningRightNow = false
+            _isRunning.value = false
             stopSelf()
         }
 
@@ -168,6 +173,7 @@ class UploadForegroundService : LifecycleService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        _isRunning.value = false
         retryPendingUploadsJob?.cancel()
     }
 
@@ -371,6 +377,8 @@ class UploadForegroundService : LifecycleService() {
 
     companion object {
         private const val TAG = "UploadForegroundService"
+        private val _isRunning = MutableStateFlow(false)
+        val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
         const val CHANNEL_ID = "dev.lordyorden.as_no_phish_detector.CHANNEL_ID_FOREGROUND"
         const val NOTIFICATION_ID = 127
         const val MAIN_ACTION: String = "dev.lordyorden.as_no_phish_detector.Services.UploadForegroundService.action.main"

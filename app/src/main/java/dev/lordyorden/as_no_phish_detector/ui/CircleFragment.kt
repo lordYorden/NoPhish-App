@@ -1,11 +1,19 @@
 package dev.lordyorden.as_no_phish_detector.ui
 
+import android.Manifest
+import android.content.ComponentName
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -14,6 +22,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.vmadalin.easypermissions.EasyPermissions
+import com.vmadalin.easypermissions.models.PermissionRequest
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.adapters.CircleAdapter
@@ -21,12 +31,14 @@ import dev.lordyorden.as_no_phish_detector.adapters.EventPreviewAdapter
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentCircleBinding
 import dev.lordyorden.as_no_phish_detector.databinding.SectionRecentActivityBinding
 import dev.lordyorden.as_no_phish_detector.models.Event
-import dev.lordyorden.as_no_phish_detector.models.PaginationResult
 import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
+import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.ui.events.CircleRecentActivityRenderer
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class CircleFragment : Fragment() {
@@ -37,7 +49,7 @@ class CircleFragment : Fragment() {
     private lateinit var eventPreviewAdapter: EventPreviewAdapter
     private lateinit var recentActivityRenderer: CircleRecentActivityRenderer
     private lateinit var localStore: MaliciousNotificationStore
-    private var recentEvents: List<Event> = emptyList()
+    private val recentEvents = MutableStateFlow<List<Event>>(emptyList())
 
     private lateinit var circleId: String
 
@@ -55,6 +67,7 @@ class CircleFragment : Fragment() {
 
         localStore = MaliciousNotificationStore.getInstance()
         getCircleId()
+        setupProtectionStatus()
         setUpRecentActivity()
         setupBottomSheet()
         binding.btnAdd.setOnClickListener {
@@ -67,6 +80,78 @@ class CircleFragment : Fragment() {
         }
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        renderProtectionStatus()
+    }
+
+    private fun setupProtectionStatus() {
+        binding.sectionProtectionOffStatus.btnTurnOnProtection.setOnClickListener {
+            when {
+                !isNotificationListenerEnabled() -> {
+                    startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                }
+
+                !isPostNotificationGranted() -> {
+                    requestPostNotificationPermission()
+                }
+            }
+        }
+
+        renderProtectionStatus()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                UploadForegroundService.isRunning.collect {
+                    renderProtectionStatus()
+                }
+            }
+        }
+    }
+
+    private fun renderProtectionStatus() {
+        val protected = hasProtectionRequirements()
+        binding.sectionProtectedStatus.root.visibility = if (protected) View.VISIBLE else View.GONE
+        binding.sectionProtectionOffStatus.root.visibility = if (protected) View.GONE else View.VISIBLE
+    }
+
+    private fun hasProtectionRequirements(): Boolean {
+        return UploadForegroundService.isRunning.value &&
+            isNotificationListenerEnabled() &&
+            isPostNotificationGranted()
+    }
+
+    private fun isNotificationListenerEnabled(): Boolean {
+        val enabledListeners = Settings.Secure.getString(
+            requireContext().contentResolver,
+            "enabled_notification_listeners"
+        ) ?: return false
+
+        return enabledListeners.split(':').any { flattenedComponent ->
+            val componentName = ComponentName.unflattenFromString(flattenedComponent)
+            componentName?.packageName == requireContext().packageName
+        }
+    }
+
+    private fun isPostNotificationGranted(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPostNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val request = PermissionRequest.Builder(requireActivity())
+            .code(Constants.Perms.POST_NOTIFICATION_CODE)
+            .perms(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+            .build()
+        EasyPermissions.requestPermissions(requireActivity(), request)
     }
 
     private fun setUpRecentActivity() {
@@ -107,9 +192,25 @@ class CircleFragment : Fragment() {
             findNavController().navigate(R.id.action_nev_circle_to_circle_events, bundle)
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                getRecentCircleEvents()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    getRecentCircleEvents()
+                }
+
+                launch {
+                    combine(
+                        recentEvents,
+                        CircleMembersRepository.getInstance().observe(circleId),
+                    ) { events, membersState ->
+                        events to membersState
+                    }.collect { (events, membersState) ->
+                        recentActivityRenderer.render(
+                            events = events,
+                            membersState = membersState,
+                        )
+                    }
+                }
             }
         }
     }
@@ -123,9 +224,6 @@ class CircleFragment : Fragment() {
             state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
-
-
-
         binding.rvCircle.layoutManager = LinearLayoutManager(requireContext())
 
         circleAdapter = CircleAdapter { member ->
@@ -134,14 +232,13 @@ class CircleFragment : Fragment() {
 
         binding.rvCircle.adapter = circleAdapter
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 CircleMembersRepository.getInstance().observe(circleId).collect { state ->
                     state.errorMessage?.let { message ->
                         Log.e(TAG, "Failed to fetch members: $message")
                     }
                     circleAdapter.submitList(state.members)
-                    renderRecentActivity()
                 }
             }
         }
@@ -156,31 +253,18 @@ class CircleFragment : Fragment() {
         val client = ConvexHelper.getInstance().convexClient
         val args = mapOf(
             "circleId" to circleId,
-            "paginationOpts" to mapOf(
-                "cursor" to null,
-                "numItems" to 5f
-            )
+            "limit" to Constants.Circle.RECENT_EVENT_LIMIT
         )
 
-        client.subscribe<PaginationResult<Event>>("events:get_by_circle", args).collect { result ->
-            result.onSuccess { page ->
-                recentEvents = page.page
-                renderRecentActivity()
+        client.subscribe<List<Event>>("events:get_recent_by_circle", args).collect { result ->
+            result.onSuccess { events ->
+                recentEvents.value = events
             }.onFailure { error ->
                 Log.e(TAG, "Failed to fetch recent circle events", error)
                 recentActivityRenderer.renderError()
             }
         }
     }
-
-    private fun renderRecentActivity() {
-        recentActivityRenderer.render(
-            events = recentEvents,
-            membersState = CircleMembersRepository.getInstance().currentState(circleId),
-        )
-    }
-
-
 
     companion object {
         const val TAG: String = "CircleFragment"

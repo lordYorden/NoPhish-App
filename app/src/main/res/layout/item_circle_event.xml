@@ -30,7 +30,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="20dp"
-            android:paddingHorizontal="10dp">
+            android:paddingStart="20dp"
+            android:paddingEnd="10dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/icon_bg"
@@ -98,53 +99,41 @@
                 app:layout_constraintTop_toBottomOf="@id/tv_name"
                 tools:text="malicious notification" />
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/bg_source"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:backgroundTint="@color/surface"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                android:layout_marginTop="12dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title"
-                app:strokeWidth="0dp">
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/tv_desc"
-                    android:visibility="gone"
-                    android:layout_width="match_parent"
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:id="@+id/btn_details"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/surface"
-                    android:fontFamily="@font/plus_jakarta_sans"
-                    android:lineSpacingExtra="4dp"
-                    android:padding="16dp"
-                    android:textColor="@color/on_surface"
-                    android:textSize="14sp"
-                    tools:text="Source: user_123" />
-            </com.google.android.material.card.MaterialCardView>
+                    android:paddingStart="0dp"
+                    android:paddingEnd="5dp"
+                    app:layout_constraintTop_toBottomOf="@id/tv_title"
+                    app:layout_constraintStart_toStartOf="@id/tv_title"
+                    android:text="@string/view_details"
+                    android:textAllCaps="false"
+                    android:textSize="15sp"
+                    app:icon="@drawable/ic_arrow_right"
+                    app:iconGravity="textEnd" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/llc_action"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/bg_source">
+                app:layout_constraintTop_toBottomOf="@id/btn_details">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_details"
+                    android:id="@+id/btn_resolve"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1.45"
-                    android:text="@string/view_details"
+                    android:layout_weight="1"
+                    android:text="@string/resolve_btn_text"
                     android:textAllCaps="false"
                     android:backgroundTint="@color/primary"
                     android:textSize="15sp"
-                    app:icon="@drawable/ic_arrow_right"
+                    app:icon="@drawable/ic_check"
                     app:iconGravity="textEnd" />
 
                 <com.google.android.material.button.MaterialButton

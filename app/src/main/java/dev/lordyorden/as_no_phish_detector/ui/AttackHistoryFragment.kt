@@ -1,5 +1,6 @@
 package dev.lordyorden.as_no_phish_detector.ui
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import dev.lordyorden.as_no_phish_detector.ClientActivity
 import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentAttackHistoryBinding
@@ -31,6 +33,7 @@ class AttackHistoryFragment : Fragment() {
     private lateinit var renderer: HistoryScreenRenderer
     private val viewModel: EventViewModel by viewModels()
     private lateinit var localStore: MaliciousNotificationStore
+    private var filterButtonTypeface: Typeface? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,8 +52,11 @@ class AttackHistoryFragment : Fragment() {
 
             tvResultCount.text = getString(R.string.zero_result)
 
-            chipGroupFilter.setOnCheckedStateChangeListener { chipGroup, _ ->
-                when(chipGroup.checkedChipId){
+            updateFilterButtonStyles()
+            chipGroupFilter.addOnButtonCheckedListener { _, checkedId, isChecked ->
+                if (!isChecked) return@addOnButtonCheckedListener
+                updateFilterButtonStyles()
+                when(checkedId){
                     R.id.chip_last_7 -> {
                         viewModel.startTime = Clock.System.now() - 7.days
                     }
@@ -67,6 +73,19 @@ class AttackHistoryFragment : Fragment() {
             setupRvResult()
             viewModel.start()
         }
+    }
+
+    private fun updateFilterButtonStyles() {
+        with(binding) {
+            if (filterButtonTypeface == null) filterButtonTypeface = chipLast7.typeface
+            updateFilterButtonStyle(chipLast7)
+            updateFilterButtonStyle(chipLast30)
+            updateFilterButtonStyle(chipAllTime)
+        }
+    }
+
+    private fun updateFilterButtonStyle(button: MaterialButton) {
+        button.setTypeface(filterButtonTypeface, if (button.isChecked) Typeface.BOLD else Typeface.NORMAL)
     }
 
     private fun setupRvResult() {
