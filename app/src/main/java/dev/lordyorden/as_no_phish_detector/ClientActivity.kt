@@ -11,10 +11,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import androidx.savedstate.SavedState
 import com.clerk.api.Clerk
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.messaging.FirebaseMessaging
@@ -75,25 +73,17 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
             true
         }
 
-        navController.addOnDestinationChangedListener(object :
-            NavController.OnDestinationChangedListener {
-            override fun onDestinationChanged(
-                controller: NavController,
-                destination: NavDestination,
-                arguments: SavedState?
-            ) {
-                when (destination.id) {
-                    R.id.nev_history, R.id.nev_circle_history -> {
-                        binding.toolbar.visibility = View.GONE
-                    }
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.nev_history, R.id.nev_circle_history -> {
+                    binding.toolbar.visibility = View.GONE
+                }
 
-                    else -> {
-                        binding.toolbar.visibility = View.VISIBLE
-                    }
+                else -> {
+                    binding.toolbar.visibility = View.VISIBLE
                 }
             }
-
-        })
+        }
 
     }
 
@@ -127,9 +117,14 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
                                 setupClientGraph()
                             }.onFailure { error ->
                                 Log.e(TAG, "Failed to ensure current circle id", error)
-                                if (error is MissingCircleException) {
-                                    moveToMainActivity()
+                                if (error !is MissingCircleException) {
+                                    Toast.makeText(
+                                        this@ClientActivity,
+                                        getString(R.string.general_error_redirect),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
+                                moveToMainActivity()
                             }
                         }
 
@@ -156,7 +151,13 @@ class ClientActivity : AppCompatActivity(), EasyPermissions.RationaleCallbacks,
 
     private suspend fun ensureCurrentCircleId(): String {
         val circleMembersRepository = CircleMembersRepository.getInstance()
-        circleMembersRepository.currentCircleId()?.let { return it }
+        circleMembersRepository.currentCircleId()?.let { cachedCircleId ->
+            if (cachedCircleId == Constants.Onboarding.ACTION_GENERATE) {
+                throw MissingCircleException()
+            }
+            return cachedCircleId
+        }
+
 
         val circleId = ConvexHelper.getInstance()
             .convexClient

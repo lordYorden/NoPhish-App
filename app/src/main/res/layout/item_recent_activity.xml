@@ -75,6 +75,7 @@
             android:fontFamily="@font/plus_jakarta_sans"
             android:gravity="top"
             android:lines="2"
+            android:ellipsize="end"
             android:textColor="#071F29"
             android:textSize="18sp"
             android:textStyle="bold"

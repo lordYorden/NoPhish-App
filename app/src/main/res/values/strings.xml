@@ -117,6 +117,7 @@
     <string name="block">Block</string>
     <string name="alerts">Alerts</string>
     <string name="resolve_btn_text">Resolve</string>
+    <string name="general_error_redirect">Something went wrong, returning to login</string>
 
     <plurals name="history_results_plural">
         <item quantity="one">%d result</item>
