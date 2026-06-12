@@ -63,25 +63,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:orientation="horizontal"
-                    app:checkedButton="@id/chip_all_time"
+                    app:checkedButton="@id/chip_last_7"
                     app:selectionRequired="true"
                     app:singleSelection="true">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/chip_all_time"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:fontFamily="@font/plus_jakarta_sans"
-                        android:text="@string/chip_time_text"
-                        android:textAllCaps="false"
-                        android:textColor="@color/alert_scope_button_text"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="@color/alert_scope_button_bg"
-                        app:checkedIcon="@null"
-                        app:strokeColor="@color/alert_scope_button_stroke"
-                        app:strokeWidth="1dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/chip_last_7"
@@ -105,6 +89,21 @@
                         android:layout_height="match_parent"
                         android:fontFamily="@font/plus_jakarta_sans"
                         android:text="@string/chip_30_text"
+                        android:textAllCaps="false"
+                        android:textColor="@color/alert_scope_button_text"
+                        android:textSize="16sp"
+                        app:backgroundTint="@color/alert_scope_button_bg"
+                        app:checkedIcon="@null"
+                        app:strokeColor="@color/alert_scope_button_stroke"
+                        app:strokeWidth="1dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/chip_all_time"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:fontFamily="@font/plus_jakarta_sans"
+                        android:text="@string/chip_time_text"
                         android:textAllCaps="false"
                         android:textColor="@color/alert_scope_button_text"
                         android:textSize="16sp"
