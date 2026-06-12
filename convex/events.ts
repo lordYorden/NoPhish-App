@@ -3,6 +3,8 @@ import { mutation, query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { Id } from "./_generated/dataModel";
 
+const LIMIT_CAP = 10
+
 export const register = mutation({
   args: {
     circleId: v.string(),
@@ -126,6 +128,8 @@ export const get_recent_by_circle = query({
       throw new Error("limit must be a positive integer");
     }
 
+    const limit = Math.min(args.limit, LIMIT_CAP);
+
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Unauthenticated");
@@ -137,7 +141,7 @@ export const get_recent_by_circle = query({
       .query("event")
       .withIndex("byCircleAndDate", (q) => q.eq("circleId", args.circleId))
       .order("desc")
-      .take(args.limit);
+      .take(limit);
   },
 });
 
