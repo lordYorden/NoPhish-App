@@ -1,8 +1,10 @@
 package dev.lordyorden.as_no_phish_detector.utilities
 
+import dev.lordyorden.as_no_phish_detector.BuildConfig
+
 class Constants {
     object RestAPI{
-        const val BASE_URL = "http://localhost:9000"
+        const val BASE_URL: String = BuildConfig.REST_API_BASE_URL
     }
 
     object Perms {
@@ -27,5 +29,16 @@ class Constants {
         const val CIRCLE_TEMP_ID = "jn7e7gmjn4ztprcbff91grwznx84wkad"
         const val CIRCLE_CODE_KEY = "JoinCode"
         const val CIRCLE_ID_KEY = "circleId"
+
+        const val RECENT_EVENT_LIMIT = 5.0
+    }
+
+    object UploadScheduler {
+        const val TTL_MILLIS = 5 * 60 * 1000L
+        const val RETRY_INTERVAL_MILLIS = 5_000L
+    }
+
+    object HistoryPagination {
+        const val PAGE_SIZE = 10
     }
 }

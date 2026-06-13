@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/plus_jakarta_sans"
+                    android:text="@string/circle_alerts"
+                    android:textColor="@color/primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/tv_result_count"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/plus_jakarta_sans"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/secondary_variant"
+                    app:chipMinHeight="28dp"
+                    app:chipStrokeWidth="0dp"
+                    tools:text="5 results" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggle_alert_scope"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="28dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="12dp"
+                android:orientation="horizontal"
+                app:checkedButton="@id/btn_action_required"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_action_required"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/plus_jakarta_sans"
+                    android:text="@string/action_required"
+                    android:textAllCaps="false"
+                    android:textColor="@color/alert_scope_button_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/alert_scope_button_bg"
+                    app:checkedIcon="@null"
+                    app:strokeColor="@color/alert_scope_button_stroke"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_all_alerts"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/plus_jakarta_sans"
+                    android:text="@string/all_alerts"
+                    android:textAllCaps="false"
+                    android:textColor="@color/alert_scope_button_text"
+                    android:textSize="16sp"
+                    app:backgroundTint="@color/alert_scope_button_bg"
+                    app:checkedIcon="@null"
+                    app:strokeColor="@color/alert_scope_button_stroke"
+                    app:strokeWidth="1dp" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_circle_events"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="20dp"
+            android:visibility="visible"
+            tools:itemCount="3"
+            tools:listitem="@layout/item_circle_event" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/layout_circle_events_state"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone"
+            tools:visibility="gone">
+
+            <com.google.android.material.loadingindicator.LoadingIndicator
+                android:id="@+id/progress_circle_events"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:indicatorColor="@color/primary"
+                tools:visibility="visible" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_circle_events_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:fontFamily="@font/plus_jakarta_sans"
+                android:gravity="center"
+                android:textColor="@color/on_surface"
+                android:textSize="16sp"
+                tools:text="@string/circle_events_loading" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_circle_events_retry"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/retry"
+                android:textAllCaps="false"
+                android:textColor="@color/primary"
+                android:visibility="gone"
+                app:icon="@drawable/ic_arrow_right"
+                app:iconGravity="textEnd"
+                app:iconTint="@color/primary"
+                tools:visibility="gone" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

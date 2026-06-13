@@ -3,6 +3,14 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.protobuf)
+}
+
+fun restApiBaseUrlFor(buildType: String, defaultValue: String): String {
+    val buildTypeProperty = "REST_API_BASE_URL_${buildType.uppercase()}"
+    return providers.gradleProperty(buildTypeProperty).orNull
+        ?: providers.gradleProperty("REST_API_BASE_URL").orNull
+        ?: defaultValue
 }
 
 android {
@@ -20,8 +28,17 @@ android {
     }
 
     buildTypes {
+        debug {
+            val restApiBaseUrl = restApiBaseUrlFor("debug", "https://localhost:9000")
+            require(restApiBaseUrl.isNotBlank()) { "REST_API_BASE_URL for debug must not be blank" }
+            buildConfigField("String", "REST_API_BASE_URL", "\"$restApiBaseUrl\"")
+        }
+
         release {
             isMinifyEnabled = false
+            val restApiBaseUrl = restApiBaseUrlFor("release", "https://localhost:9000")
+            require(restApiBaseUrl.isNotBlank()) { "REST_API_BASE_URL for release must not be blank" }
+            buildConfigField("String", "REST_API_BASE_URL", "\"$restApiBaseUrl\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -50,6 +67,25 @@ android {
 //    }
     buildFeatures{
         viewBinding=true
+        buildConfig=true
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+                create("kotlin") {
+                    option("lite")
+                }
+            }
+        }
     }
 }
 
@@ -67,6 +103,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.androidx.datastore.tink)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.protobuf.kotlin.lite)
+    implementation(libs.tink.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

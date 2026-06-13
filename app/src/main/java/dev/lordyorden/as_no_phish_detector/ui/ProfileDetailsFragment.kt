@@ -18,6 +18,7 @@ import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentProfileDetailsBinding
 import dev.lordyorden.as_no_phish_detector.models.CircleMember
 import dev.lordyorden.as_no_phish_detector.models.Task
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.ImageLoader
@@ -67,31 +68,6 @@ class ProfileDetailsFragment : Fragment() {
         Log.d(TAG, "got otp: $otpCode")
     }
 
-    private suspend fun testConvex() {
-        val client = ConvexHelper.getInstance().convexClient
-        client.subscribe<List<Task>>("tasks:get").collect { result ->
-                result.onSuccess { tasks ->
-                    Log.d(TAG, "Received ${tasks.size} tasks")
-                    tasks.forEach{ task->
-                        Log.d(TAG, "text: ${task.text}, isComplete: ${task.isCompleted}")
-                    }
-                }.onFailure { error ->
-                    Log.e(TAG, "Failed to fetch tasks", error)
-                }
-        }
-
-        client.subscribe<List<CircleMember>>("members:get").collect { result ->
-            result.onSuccess { members ->
-                Log.d(TAG, "Received ${members.size} members")
-                members.forEach{ member->
-                    Log.d(TAG, "name: ${member.name}, role: ${member.familyRole}")
-                }
-            }.onFailure { error ->
-                Log.e(TAG, "Failed to fetch members", error)
-            }
-        }
-    }
-
     private suspend fun registerMember() {
         val client = ConvexHelper.getInstance().convexClient
         val avatarUrl = Clerk.activeUser?.imageUrl ?: ""
@@ -103,6 +79,7 @@ class ProfileDetailsFragment : Fragment() {
                 "familyRole" to familyRole,
                 "avatarUrl" to avatarUrl
             ))
+            CircleMembersRepository.getInstance().setCurrentCircleId(circleId)
 
             //move to client activity
             val intent = Intent(requireActivity(), ClientActivity::class.java).apply {

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="260dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <!-- Icon Container -->
+<!--        <View-->
+<!--            android:id="@+id/iconBackground"-->
+<!--            android:layout_width="48dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:background="@drawable/bg_circle_avatar_gray"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:scaleType="centerInside"
+            android:id="@+id/iv_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@color/surface"
+            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+            android:src="@drawable/ic_warning"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <!-- Time Badge -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_badge_time"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:textColor="@color/on_background"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/iv_icon"
+            tools:text="2m ago" />
+
+        <!-- Name -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
+            android:fontFamily="@font/plus_jakarta_sans"
+            android:gravity="bottom"
+            android:lines="2"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iv_icon"
+            tools:text="Sarah" />
+
+        <!-- Action Description -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_action"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/plus_jakarta_sans"
+            android:gravity="top"
+            android:lines="2"
+            android:ellipsize="end"
+            android:textColor="@color/on_surface"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_name"
+            tools:text="Phising SMS Blocked" />
+
+        <!-- Details Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="center"
+            android:text="@string/more_details"
+            android:textSize="15sp"
+            app:cornerRadius="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_action" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

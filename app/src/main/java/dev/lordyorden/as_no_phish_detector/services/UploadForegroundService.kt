@@ -1,28 +1,34 @@
 package dev.lordyorden.as_no_phish_detector.services
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.os.PowerManager.WakeLock
 import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.clerk.api.Clerk
 import dev.lordyorden.as_no_phish_detector.MainActivity
-import dev.lordyorden.as_no_phish_detector.R
+import dev.lordyorden.as_no_phish_detector.models.CapturedNotificationPayload
+import dev.lordyorden.as_no_phish_detector.models.PendingNotificationUpload
 import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
+import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
 import dev.lordyorden.as_no_phish_detector.retrofit.SmsController
+import dev.lordyorden.as_no_phish_detector.utilities.Constants
+import dev.lordyorden.as_no_phish_detector.utilities.NotificationHelper
+import dev.lordyorden.as_no_phish_detector.utilities.PendingNotificationUploadStore
+import dev.lordyorden.as_no_phish_detector.utilities.SecureNotificationHelper
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.security.MessageDigest
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.UUID
 
 
 class UploadForegroundService : LifecycleService() {
@@ -33,10 +39,16 @@ class UploadForegroundService : LifecycleService() {
     private var lastShownNotificationId = -1
     private val smsController: SmsController = SmsController()
     private val notificationController: NotificationController = NotificationController()
+    private lateinit var pendingUploadStore: PendingNotificationUploadStore
+    private var retryPendingUploadsJob: Job? = null
+    private val flushMutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "onCreate: created()")
+
+        pendingUploadStore = PendingNotificationUploadStore.getInstance(this)
+        schedulePendingUploadRetry()
 
         lifecycleScope.launch {
             MessageBridge.messageFlow.collect { bundle ->
@@ -57,10 +69,16 @@ class UploadForegroundService : LifecycleService() {
                 isServiceRunningRightNow = true
                 notifyToUserForForegroundService()
             }
+            _isRunning.value = true
+
+            lifecycleScope.launch {
+                flushPendingUploads()
+            }
 
         } else if (action == ACTION_STOP) {
             stopHandlingMassages()
             isServiceRunningRightNow = false
+            _isRunning.value = false
             stopSelf()
         }
 
@@ -69,6 +87,7 @@ class UploadForegroundService : LifecycleService() {
 
     private suspend fun handleNewMessage(message: Bundle){
         //Log.d(TAG, "startRecording() + " + Thread.currentThread().name)
+        flushPendingUploads()
 
         val isSMS = message.getBoolean("isSMS", true)
 
@@ -98,6 +117,32 @@ class UploadForegroundService : LifecycleService() {
             val packageName = message.getString("packageName", "none")
             val timestamp = message.getLong("timestamp", 0L)
             val urls = message.getStringArrayList("urls")?.toList() ?: listOf<String>()
+            val payload = CapturedNotificationPayload(
+                eventId = UUID.randomUUID().toString(),
+                title = title,
+                body = body,
+                packageName = packageName,
+                timestamp = timestamp,
+                urls = urls
+            )
+            val sourceUserId = Clerk.activeUser?.id
+            if (sourceUserId.isNullOrBlank()) {
+                Log.e(TAG, "Rejecting notification upload: missing Clerk user for eventId=${payload.eventId}")
+                return
+            }
+
+            val circleId = CircleMembersRepository.getInstance().currentCircleId()
+            if (circleId.isNullOrBlank()) {
+                Log.e(TAG, "Rejecting notification upload: missing circleId for eventId=${payload.eventId}")
+                return
+            }
+
+            val pendingUpload = PendingNotificationUpload(
+                payload = payload,
+                createdAt = System.currentTimeMillis(),
+                sourceUserId = sourceUserId,
+                circleId = circleId
+            )
 
 /*            val notif = CreateNotification(
                 title,
@@ -107,25 +152,9 @@ class UploadForegroundService : LifecycleService() {
                 packageName,
                 timestamp)*/
 
-            val hash = buildString {
-                append(body.toSha256())
-                append(timestamp)
-                append(packageName) }.toSha256()
-
-            val rel = RelentNotificationInfo(
-                body,
-                packageName,
-                hash,
-                urls
-            )
-
-            try {
-                //notificationController.apiService.uploadNotification(notif)
-                notificationController.apiService.uploadRelInfo(rel)
-
-                Log.i(TAG, "uploaded notification $rel")
-            } catch (e: Exception) {
-                Log.e(TAG, "upload failed: $e")
+            if (!uploadNotification(pendingUpload)) {
+                pendingUploadStore.save(pendingUpload)
+                schedulePendingUploadRetry()
             }
         }
 
@@ -136,22 +165,90 @@ class UploadForegroundService : LifecycleService() {
         wakeLock.acquire(10*60*1000L)s*/
     }
 
-    private fun String.toSha256(): String {
-        val bytes = this.toByteArray()
-        val md = MessageDigest.getInstance("SHA-256")
-        val digest = md.digest(bytes)
-
-        // Convert bytes to a hex string
-        return digest.joinToString("") { "%02x".format(it) }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
+        _isRunning.value = false
+        retryPendingUploadsJob?.cancel()
     }
 
     private fun stopHandlingMassages(){
         //wakeLock.release();
+        retryPendingUploadsJob?.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
+    }
+
+    private fun schedulePendingUploadRetry() {
+        if (retryPendingUploadsJob?.isActive == true) return
+
+        retryPendingUploadsJob = lifecycleScope.launch {
+            while (true) {
+                flushPendingUploads()
+
+                if (pendingUploadStore.getPendingUploads().isEmpty()) {
+                    return@launch
+                }
+
+                delay(Constants.UploadScheduler.RETRY_INTERVAL_MILLIS)
+            }
+        }
+    }
+
+    private suspend fun flushPendingUploads() {
+        flushMutex.withLock {
+            pendingUploadStore.removeExpired()
+
+            val uploadedEventIds = mutableSetOf<String>()
+
+            pendingUploadStore.getPendingUploads().forEach { pendingUpload ->
+                if (uploadNotification(pendingUpload)) {
+                    uploadedEventIds.add(pendingUpload.payload.eventId)
+                }
+            }
+
+            pendingUploadStore.remove(uploadedEventIds)
+        }
+    }
+
+    private suspend fun uploadNotification(
+        upload: PendingNotificationUpload
+    ): Boolean {
+        val payload = upload.payload
+        val contentHash = SecureNotificationHelper.contentHash(
+            eventId = payload.eventId,
+            title = payload.title,
+            body = payload.body,
+            packageName = payload.packageName,
+            urls = payload.urls,
+            notificationTimestamp = payload.timestamp,
+            sourceUserId = upload.sourceUserId
+        )
+
+        val rel = RelentNotificationInfo(
+            eventId = payload.eventId,
+            sourceUserId = upload.sourceUserId,
+            circleId = upload.circleId,
+            title = payload.title,
+            body = payload.body,
+            packageName = payload.packageName,
+            timestamp = payload.timestamp,
+            contentHash = contentHash,
+            urls = payload.urls
+        )
+
+        return try {
+            //notificationController.apiService.uploadNotification(notif)
+            val response = notificationController.apiService.uploadRelInfo(rel)
+            if (!response.isSuccessful) {
+                Log.e(TAG, "upload failed with HTTP ${response.code()} for event: ${rel.eventId}")
+                return false
+            }
+
+            Log.i(TAG, "uploaded notification event: ${rel.eventId}")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "upload failed: $e")
+            false
+        }
     }
 
     /*@OptIn(DelicateCoroutinesApi::class)
@@ -173,32 +270,16 @@ class UploadForegroundService : LifecycleService() {
 
     private fun notifyToUserForForegroundService(){
 
-        val notificationIntent = Intent(
-            this,
-            MainActivity::class.java
+        val notificationIntent = Intent(this, MainActivity::class.java).apply {
+            action = MAIN_ACTION
+            //flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val notification = NotificationHelper.getInstance().buildForegroundServiceNotification(
+            title = "Keeping you protected",
+            body = "Scanning incoming messages and notifications",
+            channelId = CHANNEL_ID,
+            intent = notificationIntent
         )
-        notificationIntent.setAction(MAIN_ACTION)
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            NOTIFICATION_ID,
-            notificationIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notificationBuilder = getNotificationBuilder(this,
-            CHANNEL_ID,
-            NotificationManagerCompat.IMPORTANCE_HIGH)
-
-        notificationBuilder
-            .setContentIntent(pendingIntent) // Open activity
-            .setOngoing(true)
-            .setSmallIcon(R.drawable.ic_nophish_color)
-            //.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_nophish_color))
-            .setContentTitle("Keeping you protected")
-            .setContentText("Scanning incoming messages and notifications")
-
-        val notification = notificationBuilder.build()
 
         startForeground(NOTIFICATION_ID, notification)
 
@@ -208,41 +289,6 @@ class UploadForegroundService : LifecycleService() {
             notificationManager.cancel(lastShownNotificationId)
         }
         lastShownNotificationId = NOTIFICATION_ID
-    }
-
-    private fun getNotificationBuilder(
-        context: Context,
-        channelId: String,
-        importance: Int
-    ): NotificationCompat.Builder {
-        val builder: NotificationCompat.Builder
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            prepareChannel(context, channelId, importance)
-            builder = NotificationCompat.Builder(context, channelId)
-        } else {
-            builder = NotificationCompat.Builder(context)
-        }
-        return builder
-    }
-
-    @RequiresApi(26)
-    private fun prepareChannel(context: Context, id: String, importance: Int) {
-        val channelName = "Live updates"
-        val channelDescription = "Recording status"
-        val nm = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        var nChannel = nm.getNotificationChannel(id)
-
-        if (nChannel == null) {
-            nChannel = NotificationChannel(id, channelName, importance)
-            nChannel.description = channelDescription
-
-            // from another answer
-            nChannel.enableLights(true)
-            nChannel.lightColor = Color.BLUE
-
-            nm.createNotificationChannel(nChannel)
-        }
     }
 
 /*    override fun onBind(p0: Intent?): IBinder? {
@@ -268,6 +314,8 @@ class UploadForegroundService : LifecycleService() {
 
     companion object {
         private const val TAG = "UploadForegroundService"
+        private val _isRunning = MutableStateFlow(false)
+        val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
         const val CHANNEL_ID = "dev.lordyorden.as_no_phish_detector.CHANNEL_ID_FOREGROUND"
         const val NOTIFICATION_ID = 127
         const val MAIN_ACTION: String = "dev.lordyorden.as_no_phish_detector.Services.UploadForegroundService.action.main"
