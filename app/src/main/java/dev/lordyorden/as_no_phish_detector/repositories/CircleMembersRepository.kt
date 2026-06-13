@@ -51,21 +51,6 @@ class CircleMembersRepository private constructor(
         return state.asStateFlow()
     }
 
-    fun currentState(circleId: String): CircleMembersState {
-        require(circleId.isNotBlank()) { "circleId must not be blank" }
-
-        return states[circleId]?.value
-            ?: throw IllegalStateException("Circle members must be observed before reading current state for circleId=$circleId")
-    }
-
-    fun requireMember(circleId: String, userId: String): CircleMember {
-        require(circleId.isNotBlank()) { "circleId must not be blank" }
-        require(userId.isNotBlank()) { "userId must not be blank" }
-
-        return stateFor(circleId).value.membersByUserId[userId]
-            ?: throw IllegalStateException("Missing circle member for circleId=$circleId")
-    }
-
     suspend fun clearAll() {
         val jobs = subscriptionJobs.values.toList()
         val retainedStates = states.values.toList()

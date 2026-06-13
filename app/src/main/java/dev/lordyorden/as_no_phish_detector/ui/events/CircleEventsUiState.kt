@@ -5,5 +5,11 @@ data class CircleEventsUiState(
     val loading: HistoryLoading = HistoryLoading.Initial,
     val endReached: Boolean = false,
     val errorMessage: String? = null,
+    val errorKind: CircleEventsErrorKind? = null,
     val alertScope: CircleAlertScope = CircleAlertScope.ActionRequired,
 )
+
+enum class CircleEventsErrorKind {
+    MissingCircleMember,
+    Generic,
+}

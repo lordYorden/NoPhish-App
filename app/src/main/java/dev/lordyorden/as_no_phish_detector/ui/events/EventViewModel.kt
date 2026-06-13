@@ -9,6 +9,7 @@ import dev.lordyorden.as_no_phish_detector.models.Event
 import dev.lordyorden.as_no_phish_detector.models.PaginationResult
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -96,6 +97,8 @@ class EventViewModel : ViewModel() {
                         publishError(error)
                     }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 publishError(error)
             }

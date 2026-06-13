@@ -40,13 +40,9 @@ class CircleEventsScreenRenderer(
     private fun stateText(surfaceState: CircleEventsSurfaceState): String {
         return when (surfaceState) {
             CircleEventsSurfaceState.InitialLoading -> context.getString(R.string.circle_events_loading)
-            is CircleEventsSurfaceState.InitialError -> {
-                val errorMessage = surfaceState.errorMessage
-                if (errorMessage?.startsWith("Missing circle member") == true) {
-                    context.getString(R.string.missing_for_event)
-                } else {
-                    context.getString(R.string.circle_events_error)
-                }
+            is CircleEventsSurfaceState.InitialError -> when (surfaceState.errorKind) {
+                CircleEventsErrorKind.MissingCircleMember -> context.getString(R.string.missing_for_event)
+                CircleEventsErrorKind.Generic -> context.getString(R.string.circle_events_error)
             }
             CircleEventsSurfaceState.Empty -> context.getString(R.string.circle_events_empty)
             CircleEventsSurfaceState.List -> ""
@@ -66,24 +62,21 @@ class CircleEventsScreenRenderer(
 
 private sealed class CircleEventsSurfaceState {
     data object InitialLoading : CircleEventsSurfaceState()
-    data class InitialError(val error: String) : CircleEventsSurfaceState()
+    data class InitialError(val errorKind: CircleEventsErrorKind) : CircleEventsSurfaceState()
     data object Empty : CircleEventsSurfaceState()
     data object List : CircleEventsSurfaceState()
 
     val showStateLayout: Boolean
         get() = this != List
 
-    val errorMessage: String?
-        get() = (this as? InitialError)?.error
-
     companion object {
         fun from(state: CircleEventsUiState): CircleEventsSurfaceState {
             return when {
                 state.loading == HistoryLoading.Initial && state.events.isEmpty() -> InitialLoading
-                state.events.isEmpty() && state.errorMessage != null -> InitialError(state.errorMessage)
+                state.events.isEmpty() && state.errorKind != null -> InitialError(state.errorKind)
                 state.loading == HistoryLoading.Idle &&
                     state.events.isEmpty() &&
-                    state.errorMessage == null -> Empty
+                    state.errorKind == null -> Empty
                 else -> List
             }
         }

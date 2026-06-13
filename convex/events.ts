@@ -60,18 +60,16 @@ export const get = query({
       throw new Error("Unauthenticated");
     }
 
-    const eventsQuery = ctx.db.query("event").withIndex("byDate");
-    const filteredEventsQuery =
-      args.startTime !== undefined
-        ? eventsQuery.filter((q) =>
-            q.and(
-              q.eq(q.field("userId"), identity.subject),
-              q.gte(q.field("timestamp"), args.startTime ?? 0),
-            ),
-          )
-        : eventsQuery.filter((q) => q.eq(q.field("userId"), identity.subject));
+    const eventsQuery = ctx.db
+      .query("event")
+      .withIndex("byUserAndDate", (q) => {
+        const userQuery = q.eq("userId", identity.subject);
+        return args.startTime !== undefined
+          ? userQuery.gte("timestamp", args.startTime)
+          : userQuery;
+      });
 
-    return await filteredEventsQuery.order("desc").paginate(args.paginationOpts);
+    return await eventsQuery.order("desc").paginate(args.paginationOpts);
   },
 });
 

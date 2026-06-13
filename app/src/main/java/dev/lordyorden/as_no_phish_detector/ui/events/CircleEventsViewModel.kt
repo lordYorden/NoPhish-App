@@ -11,6 +11,7 @@ import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersState
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -115,6 +116,7 @@ class CircleEventsViewModel : ViewModel() {
             it.copy(
                 loading = loading,
                 errorMessage = null,
+                errorKind = null,
                 endReached = if (loading == HistoryLoading.Initial) false else it.endReached,
                 alertScope = alertScope,
             )
@@ -137,6 +139,8 @@ class CircleEventsViewModel : ViewModel() {
                         publishError(error)
                     }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 publishError(error)
             }
@@ -162,6 +166,7 @@ class CircleEventsViewModel : ViewModel() {
                 it.copy(
                     loading = HistoryLoading.Idle,
                     errorMessage = membersState.errorMessage,
+                    errorKind = CircleEventsErrorKind.Generic,
                     alertScope = alertScope,
                 )
             }
@@ -173,6 +178,7 @@ class CircleEventsViewModel : ViewModel() {
                 it.copy(
                     loading = if (latestEvents.isEmpty()) loading else HistoryLoading.Initial,
                     errorMessage = null,
+                    errorKind = null,
                     endReached = endReached,
                     alertScope = alertScope,
                 )
@@ -189,6 +195,7 @@ class CircleEventsViewModel : ViewModel() {
                     it.copy(
                         loading = HistoryLoading.Idle,
                         errorMessage = message,
+                        errorKind = CircleEventsErrorKind.MissingCircleMember,
                         alertScope = alertScope,
                     )
                 }
@@ -227,6 +234,7 @@ class CircleEventsViewModel : ViewModel() {
             it.copy(
                 loading = HistoryLoading.Idle,
                 errorMessage = message,
+                errorKind = CircleEventsErrorKind.Generic,
                 alertScope = alertScope,
             )
         }

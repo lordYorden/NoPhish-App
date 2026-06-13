@@ -43,6 +43,7 @@ export default defineSchema({
         requiresAction: v.optional(v.boolean()),
     })
     .index("byDate", ["timestamp"])
+    .index("byUserAndDate", ["userId", "timestamp"])
     .index("byCircleAndDate", ["circleId", "timestamp"])
     .index("byEventId", ["eventId"])
 })
