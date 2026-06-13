@@ -24,6 +24,10 @@ class MaliciousNotificationStore private constructor(context: Context) {
     suspend fun save(details: AttackDetails) {
 
         require(details.eventId.isNotBlank()) { "eventId must not be blank" }
+        require(details.sourceUserId.isNotBlank()) { "sourceUserId must not be blank" }
+        require(details.notificationTimestamp > 0L) { "notificationTimestamp must be positive" }
+        require(details.contentHash.isNotBlank()) { "contentHash must not be blank" }
+        require(details.receivedAt > 0L) { "receivedAt must be positive" }
 
         dataStore.updateData { current ->
             current.toBuilder()
@@ -42,6 +46,14 @@ class MaliciousNotificationStore private constructor(context: Context) {
             .detailsList
             .firstOrNull { it.eventId == eventId }
             ?.toModel()
+    }
+
+    suspend fun clearAll() {
+        dataStore.updateData { current ->
+            current.toBuilder()
+                .clearDetails()
+                .build()
+        }
     }
 
     suspend fun getValidated(eventId: String, expectedHash: String): AttackDetails? {

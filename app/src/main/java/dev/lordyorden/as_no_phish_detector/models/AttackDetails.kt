@@ -7,10 +7,10 @@ data class AttackDetails(
     val body: String,
     val packageName: String,
     val urls: List<String>,
-    val eventId: String = "",
-    val sourceUserId: String = "",
+    val eventId: String,
+    val sourceUserId: String,
     val title: String = "",
-    val notificationTimestamp: Long = 0L,
-    val contentHash: String = "",
-    val receivedAt: Long = 0L
+    val notificationTimestamp: Long,
+    val contentHash: String,
+    val receivedAt: Long
 )

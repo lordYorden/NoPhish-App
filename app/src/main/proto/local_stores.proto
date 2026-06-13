@@ -17,6 +17,8 @@ message CapturedNotificationPayloadRecord {
 message PendingNotificationUploadRecord {
   CapturedNotificationPayloadRecord payload = 1;
   int64 created_at = 2;
+  string source_user_id = 3;
+  string circle_id = 4;
 }
 
 message PendingNotificationUploads {

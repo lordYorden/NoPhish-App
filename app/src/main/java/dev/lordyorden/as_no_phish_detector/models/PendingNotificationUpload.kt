@@ -5,5 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PendingNotificationUpload(
     val payload: CapturedNotificationPayload,
-    val createdAt: Long
+    val createdAt: Long,
+    val sourceUserId: String,
+    val circleId: String
 )

@@ -18,6 +18,10 @@ class PendingNotificationUploadStore private constructor(context: Context) {
     )
 
     suspend fun save(upload: PendingNotificationUpload) {
+        require(upload.payload.eventId.isNotBlank()) { "payload.eventId must not be blank" }
+        require(upload.sourceUserId.isNotBlank()) { "sourceUserId must not be blank" }
+        require(upload.circleId.isNotBlank()) { "circleId must not be blank" }
+
         val uploadRecord = upload.toRecord()
 
         updateUploads { uploads ->
@@ -39,10 +43,15 @@ class PendingNotificationUploadStore private constructor(context: Context) {
 
     suspend fun remove(eventIds: Set<String>) {
         if (eventIds.isEmpty()) return
+        require(eventIds.none { it.isBlank() }) { "eventIds must not contain blank values" }
 
         updateUploads { uploads ->
             uploads.filterNot { eventIds.contains(it.payload.eventId) }
         }
+    }
+
+    suspend fun clearAll() {
+        updateUploads { emptyList() }
     }
 
     private suspend fun loadAll(): List<PendingNotificationUpload> {
@@ -70,6 +79,8 @@ class PendingNotificationUploadStore private constructor(context: Context) {
         return PendingNotificationUploadRecord.newBuilder()
             .setPayload(payload.toRecord())
             .setCreatedAt(createdAt)
+            .setSourceUserId(sourceUserId)
+            .setCircleId(circleId)
             .build()
     }
 
@@ -85,9 +96,15 @@ class PendingNotificationUploadStore private constructor(context: Context) {
     }
 
     private fun PendingNotificationUploadRecord.toModel(): PendingNotificationUpload {
+        require(payload.eventId.isNotBlank()) { "payload.eventId must not be blank" }
+        require(sourceUserId.isNotBlank()) { "sourceUserId must not be blank" }
+        require(circleId.isNotBlank()) { "circleId must not be blank" }
+
         return PendingNotificationUpload(
             payload = payload.toModel(),
-            createdAt = createdAt
+            createdAt = createdAt,
+            sourceUserId = sourceUserId,
+            circleId = circleId
         )
     }
 

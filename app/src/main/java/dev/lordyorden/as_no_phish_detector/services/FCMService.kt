@@ -15,6 +15,7 @@ import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationPayloadParser
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
 import dev.lordyorden.as_no_phish_detector.utilities.NotificationHelper
+import dev.lordyorden.as_no_phish_detector.utilities.SecureNotificationHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
@@ -31,6 +32,8 @@ class FCMService : FirebaseMessagingService() {
         val maliciousPayload = parseMaliciousInfoPayload(maliciousPayloadJson)
 
         maliciousPayload?.let { payload ->
+            if (!isPayloadHashValid(payload)) return
+
             showNotification(payload)
             enqueueMaliciousEventRegistration(maliciousPayloadJson, payload.eventId)
 
@@ -44,6 +47,14 @@ class FCMService : FirebaseMessagingService() {
                 }
             }
         }
+    }
+
+    private fun isPayloadHashValid(payload: RelentNotificationInfo): Boolean {
+        return runCatching {
+            SecureNotificationHelper.requireValidPayloadHash(payload)
+        }.onFailure { error ->
+            Log.e(TAG, "Rejected tampered malicious notification payload for eventId=${payload.eventId}", error)
+        }.isSuccess
     }
 
     private fun showNotification(maliciousPayload: RelentNotificationInfo) {

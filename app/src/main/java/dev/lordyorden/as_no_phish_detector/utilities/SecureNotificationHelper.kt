@@ -49,6 +49,8 @@ object SecureNotificationHelper {
     }
 
     fun toAttackDetails(payload: RelentNotificationInfo): AttackDetails {
+        requireValidPayloadHash(payload)
+
         return AttackDetails(
             body = payload.body,
             packageName = payload.packageName,
@@ -60,6 +62,24 @@ object SecureNotificationHelper {
             contentHash = payload.contentHash,
             receivedAt = System.currentTimeMillis()
         )
+    }
+
+    fun requireValidPayloadHash(payload: RelentNotificationInfo) {
+        require(payload.contentHash.isNotBlank()) { "contentHash must not be blank" }
+
+        val expectedHash = contentHash(
+            eventId = payload.eventId,
+            title = payload.title.orEmpty(),
+            body = payload.body,
+            packageName = payload.packageName,
+            urls = payload.urls,
+            notificationTimestamp = payload.timestamp,
+            sourceUserId = payload.sourceUserId
+        )
+
+        require(payload.contentHash == expectedHash) {
+            "Invalid malicious notification payload hash for eventId=${payload.eventId}"
+        }
     }
 
     private fun canonicalPayloadJson(

@@ -16,7 +16,10 @@ import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.models.PermissionRequest
 import dev.lordyorden.as_no_phish_detector.databinding.FragmentSettingsBinding
 import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
+import dev.lordyorden.as_no_phish_detector.services.UploadForegroundService
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
+import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationStore
+import dev.lordyorden.as_no_phish_detector.utilities.PendingNotificationUploadStore
 import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
@@ -44,7 +47,14 @@ class SettingsFragment : Fragment() {
         binding.btnLogout.setOnClickListener {
             lifecycleScope.launch {
                 Clerk.auth.signOut()
+                PendingNotificationUploadStore.getInstance(requireContext()).clearAll()
+                MaliciousNotificationStore.getInstance().clearAll()
                 CircleMembersRepository.getInstance().clearAll()
+                requireContext().startService(
+                    Intent(requireContext(), UploadForegroundService::class.java).apply {
+                        action = UploadForegroundService.ACTION_STOP
+                    }
+                )
                 requireActivity().finish()
             }
         }

@@ -9,6 +9,7 @@ import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
 import dev.lordyorden.as_no_phish_detector.utilities.ConvexHelper
 import dev.lordyorden.as_no_phish_detector.utilities.MaliciousNotificationPayloadParser
+import dev.lordyorden.as_no_phish_detector.utilities.SecureNotificationHelper
 
 class RegisterMaliciousEventWorker(
     appContext: Context,
@@ -22,7 +23,9 @@ class RegisterMaliciousEventWorker(
             }
 
         val payload = runCatching {
-            MaliciousNotificationPayloadParser.parse(payloadJson)
+            MaliciousNotificationPayloadParser.parse(payloadJson).also { payload ->
+                SecureNotificationHelper.requireValidPayloadHash(payload)
+            }
         }.getOrElse { error ->
             Log.e(TAG, "Failed to parse malicious notification worker payload", error)
             return Result.failure()

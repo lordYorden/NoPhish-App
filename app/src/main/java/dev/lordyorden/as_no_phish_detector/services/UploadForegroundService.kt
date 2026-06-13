@@ -134,18 +134,23 @@ class UploadForegroundService : LifecycleService() {
                 urls = urls
             )
             val sourceUserId = Clerk.activeUser?.id
-
             if (sourceUserId.isNullOrBlank()) {
-                pendingUploadStore.save(
-                    PendingNotificationUpload(
-                        payload = payload,
-                        createdAt = System.currentTimeMillis()
-                    )
-                )
-                schedulePendingUploadRetry()
-                Log.w(TAG, "Queued notification upload until Clerk user state is available")
+                Log.e(TAG, "Rejecting notification upload: missing Clerk user for eventId=${payload.eventId}")
                 return
             }
+
+            val circleId = CircleMembersRepository.getInstance().currentCircleId()
+            if (circleId.isNullOrBlank()) {
+                Log.e(TAG, "Rejecting notification upload: missing circleId for eventId=${payload.eventId}")
+                return
+            }
+
+            val pendingUpload = PendingNotificationUpload(
+                payload = payload,
+                createdAt = System.currentTimeMillis(),
+                sourceUserId = sourceUserId,
+                circleId = circleId
+            )
 
 /*            val notif = CreateNotification(
                 title,
@@ -155,13 +160,10 @@ class UploadForegroundService : LifecycleService() {
                 packageName,
                 timestamp)*/
 
-            uploadNotification(
-                PendingNotificationUpload(
-                    payload = payload,
-                    createdAt = System.currentTimeMillis()
-                ),
-                sourceUserId
-            )
+            if (!uploadNotification(pendingUpload)) {
+                pendingUploadStore.save(pendingUpload)
+                schedulePendingUploadRetry()
+            }
         }
 
 
@@ -203,15 +205,10 @@ class UploadForegroundService : LifecycleService() {
         flushMutex.withLock {
             pendingUploadStore.removeExpired()
 
-            val sourceUserId = Clerk.activeUser?.id
-            if (sourceUserId.isNullOrBlank()) {
-                return@withLock
-            }
-
             val uploadedEventIds = mutableSetOf<String>()
 
             pendingUploadStore.getPendingUploads().forEach { pendingUpload ->
-                if (uploadNotification(pendingUpload, sourceUserId)) {
+                if (uploadNotification(pendingUpload)) {
                     uploadedEventIds.add(pendingUpload.payload.eventId)
                 }
             }
@@ -221,8 +218,7 @@ class UploadForegroundService : LifecycleService() {
     }
 
     private suspend fun uploadNotification(
-        upload: PendingNotificationUpload,
-        sourceUserId: String
+        upload: PendingNotificationUpload
     ): Boolean {
         val payload = upload.payload
         val contentHash = SecureNotificationHelper.contentHash(
@@ -232,13 +228,13 @@ class UploadForegroundService : LifecycleService() {
             packageName = payload.packageName,
             urls = payload.urls,
             notificationTimestamp = payload.timestamp,
-            sourceUserId = sourceUserId
+            sourceUserId = upload.sourceUserId
         )
 
         val rel = RelentNotificationInfo(
             eventId = payload.eventId,
-            sourceUserId = sourceUserId,
-            circleId = CircleMembersRepository.getInstance().currentCircleId(),
+            sourceUserId = upload.sourceUserId,
+            circleId = upload.circleId,
             title = payload.title,
             body = payload.body,
             packageName = payload.packageName,
