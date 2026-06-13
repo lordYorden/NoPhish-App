@@ -112,19 +112,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:nestedScrollingEnabled="true"
-                app:layout_constraintBottom_toTopOf="@id/card_safety"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:itemCount="2"
+                tools:itemCount="5"
                 tools:listitem="@layout/item_circle_member" />
 
             <!-- Safety in Numbers Card -->
             <include
+                android:visibility="gone"
                 android:id="@+id/card_safety"
                 layout="@layout/card_safety_in_numbers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="100dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/rv_circle" />
         </androidx.constraintlayout.widget.ConstraintLayout>

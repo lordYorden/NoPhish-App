@@ -1,24 +1,15 @@
 package dev.lordyorden.as_no_phish_detector.services
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.os.PowerManager.WakeLock
 import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.clerk.api.Clerk
 import dev.lordyorden.as_no_phish_detector.MainActivity
-import dev.lordyorden.as_no_phish_detector.R
 import dev.lordyorden.as_no_phish_detector.models.CapturedNotificationPayload
 import dev.lordyorden.as_no_phish_detector.models.PendingNotificationUpload
 import dev.lordyorden.as_no_phish_detector.models.RelentNotificationInfo
@@ -26,6 +17,7 @@ import dev.lordyorden.as_no_phish_detector.repositories.CircleMembersRepository
 import dev.lordyorden.as_no_phish_detector.retrofit.NotificationController
 import dev.lordyorden.as_no_phish_detector.retrofit.SmsController
 import dev.lordyorden.as_no_phish_detector.utilities.Constants
+import dev.lordyorden.as_no_phish_detector.utilities.NotificationHelper
 import dev.lordyorden.as_no_phish_detector.utilities.PendingNotificationUploadStore
 import dev.lordyorden.as_no_phish_detector.utilities.SecureNotificationHelper
 import kotlinx.coroutines.Job
@@ -278,32 +270,16 @@ class UploadForegroundService : LifecycleService() {
 
     private fun notifyToUserForForegroundService(){
 
-        val notificationIntent = Intent(
-            this,
-            MainActivity::class.java
+        val notificationIntent = Intent(this, MainActivity::class.java).apply {
+            action = MAIN_ACTION
+            //flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val notification = NotificationHelper.getInstance().buildForegroundServiceNotification(
+            title = "Keeping you protected",
+            body = "Scanning incoming messages and notifications",
+            channelId = CHANNEL_ID,
+            intent = notificationIntent
         )
-        notificationIntent.setAction(MAIN_ACTION)
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            NOTIFICATION_ID,
-            notificationIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notificationBuilder = getNotificationBuilder(this,
-            CHANNEL_ID,
-            NotificationManagerCompat.IMPORTANCE_HIGH)
-
-        notificationBuilder
-            .setContentIntent(pendingIntent) // Open activity
-            .setOngoing(true)
-            .setSmallIcon(R.drawable.ic_nophish_color)
-            //.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_nophish_color))
-            .setContentTitle("Keeping you protected")
-            .setContentText("Scanning incoming messages and notifications")
-
-        val notification = notificationBuilder.build()
 
         startForeground(NOTIFICATION_ID, notification)
 
@@ -313,41 +289,6 @@ class UploadForegroundService : LifecycleService() {
             notificationManager.cancel(lastShownNotificationId)
         }
         lastShownNotificationId = NOTIFICATION_ID
-    }
-
-    private fun getNotificationBuilder(
-        context: Context,
-        channelId: String,
-        importance: Int
-    ): NotificationCompat.Builder {
-        val builder: NotificationCompat.Builder
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            prepareChannel(context, channelId, importance)
-            builder = NotificationCompat.Builder(context, channelId)
-        } else {
-            builder = NotificationCompat.Builder(context)
-        }
-        return builder
-    }
-
-    @RequiresApi(26)
-    private fun prepareChannel(context: Context, id: String, importance: Int) {
-        val channelName = "Live updates"
-        val channelDescription = "Recording status"
-        val nm = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        var nChannel = nm.getNotificationChannel(id)
-
-        if (nChannel == null) {
-            nChannel = NotificationChannel(id, channelName, importance)
-            nChannel.description = channelDescription
-
-            // from another answer
-            nChannel.enableLights(true)
-            nChannel.lightColor = Color.BLUE
-
-            nm.createNotificationChannel(nChannel)
-        }
     }
 
 /*    override fun onBind(p0: Intent?): IBinder? {

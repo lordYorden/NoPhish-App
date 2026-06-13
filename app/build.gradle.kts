@@ -6,6 +6,13 @@ plugins {
     alias(libs.plugins.protobuf)
 }
 
+fun restApiBaseUrlFor(buildType: String, defaultValue: String): String {
+    val buildTypeProperty = "REST_API_BASE_URL_${buildType.uppercase()}"
+    return providers.gradleProperty(buildTypeProperty).orNull
+        ?: providers.gradleProperty("REST_API_BASE_URL").orNull
+        ?: defaultValue
+}
+
 android {
     namespace = "dev.lordyorden.as_no_phish_detector"
     compileSdk = 36
@@ -21,8 +28,17 @@ android {
     }
 
     buildTypes {
+        debug {
+            val restApiBaseUrl = restApiBaseUrlFor("debug", "https://localhost:9000")
+            require(restApiBaseUrl.isNotBlank()) { "REST_API_BASE_URL for debug must not be blank" }
+            buildConfigField("String", "REST_API_BASE_URL", "\"$restApiBaseUrl\"")
+        }
+
         release {
             isMinifyEnabled = false
+            val restApiBaseUrl = restApiBaseUrlFor("release", "https://localhost:9000")
+            require(restApiBaseUrl.isNotBlank()) { "REST_API_BASE_URL for release must not be blank" }
+            buildConfigField("String", "REST_API_BASE_URL", "\"$restApiBaseUrl\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -51,6 +67,7 @@ android {
 //    }
     buildFeatures{
         viewBinding=true
+        buildConfig=true
     }
 }
 

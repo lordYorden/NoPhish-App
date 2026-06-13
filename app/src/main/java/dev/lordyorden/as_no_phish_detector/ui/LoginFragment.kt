@@ -273,13 +273,18 @@ class LoginFragment : Fragment() {
                         Clerk.auth.setActive(sessionId)
                     }
 
-                    if (res.signIn?.status != SignIn.Status.COMPLETE) {
-                        // User might need to provide extra info (e.g. missing phone number)
-                        Log.d("Clerk", "Missing requirements: ${res.signUp?.requiredFields}")
-                    } else if (res.signIn?.status == SignIn.Status.NEEDS_CLIENT_TRUST) {
-                        // You must now show a UI for the user to enter a code
-                        // and call res.prepareFirstFactor() then res.attemptFirstFactor()
-                        Log.d("Clerk", "Device is new. Verification code sent to email.")
+                    when (res.signIn?.status) {
+                        SignIn.Status.NEEDS_CLIENT_TRUST -> {
+                            // You must now show a UI for the user to enter a code
+                            // and call res.prepareFirstFactor() then res.attemptFirstFactor()
+                            Log.d("Clerk", "Device is new. Verification code sent to email.")
+                        }
+
+                        SignIn.Status.COMPLETE -> Unit
+                        else -> {
+                            // User might need to provide extra info (e.g. missing phone number)
+                            Log.d("Clerk", "Missing requirements: ${res.signUp?.requiredFields}")
+                        }
                     }
 
                 }
