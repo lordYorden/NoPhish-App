@@ -20,7 +20,6 @@ class EventPreviewAdapter(
 ) : RecyclerView.Adapter<EventPreviewAdapter.EventViewHolder>() {
 
     private var events = emptyList<CircleEventUiItem>()
-    private val dateFormatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.US)
 
     fun submitList(nextEvents: List<CircleEventUiItem>) {
         val diff = DiffUtil.calculateDiff(EventPreviewDiffCallback(events, nextEvents))
@@ -82,7 +81,7 @@ class EventPreviewAdapter(
     inner class EventViewHolder(val binding: ItemRecentActivityBinding) :
         RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.root.setOnClickListener {
+            binding.btnDetails.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onMemberClick(getItem(position).event)
