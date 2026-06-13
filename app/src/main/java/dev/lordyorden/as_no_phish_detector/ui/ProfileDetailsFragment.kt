@@ -6,7 +6,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -31,7 +33,11 @@ class ProfileDetailsFragment : Fragment() {
         get() = binding.etName.text.toString()
 
     private val familyRole: String
-        get() = binding.spRole.text.toString()
+        get() = if (binding.spRole.text.toString() == OTHER_ROLE) {
+            binding.etOther.text.toString()
+        } else {
+            binding.spRole.text.toString()
+        }
 
     private lateinit var otpCode: String
 
@@ -57,6 +63,7 @@ class ProfileDetailsFragment : Fragment() {
                 }
             } else {
                 Log.w(TAG, "Save ignored because name or familyRole is empty")
+                Toast.makeText(requireContext(), "missing name of family role", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -94,9 +101,15 @@ class ProfileDetailsFragment : Fragment() {
     }
 
     private fun setupDropdown() {
-        val roles = arrayOf("Son", "Daughter", "Nephew", "Niece", "Uncle", "Aunt", "Grandparent", "Grandchild", "Other")
+        binding.tiOther.visibility = View.GONE
+
+        val roles = arrayOf("Son", "Daughter", "Nephew", "Niece", "Uncle", "Aunt", "Grandparent", "Grandchild", OTHER_ROLE)
         val adapter = ArrayAdapter(requireContext(), R.layout.list_item, roles)
         binding.spRole.setAdapter(adapter)
+        binding.spRole.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
+            val selectedRole = roles[position]
+            binding.tiOther.visibility = if (selectedRole == OTHER_ROLE) View.VISIBLE else View.GONE
+        }
     }
 
     private fun observeUserFlow() {
@@ -119,6 +132,7 @@ class ProfileDetailsFragment : Fragment() {
 
     companion object {
         private const val TAG = "ProfileDetailsFragment"
+        private const val OTHER_ROLE = "Other"
     }
 
 }

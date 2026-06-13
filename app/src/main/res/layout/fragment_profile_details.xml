@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/background"
     android:fillViewport="true">
 
@@ -19,13 +20,13 @@
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/complete_your_profile"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="32dp"
-            android:fontFamily="@font/plus_jakarta_sans" />
+            android:fontFamily="@font/plus_jakarta_sans"
+            android:text="@string/complete_your_profile"
+            android:textColor="@color/primary"
+            android:textSize="32sp"
+            android:textStyle="bold" />
 
         <!-- Profile Photo Section -->
         <FrameLayout
@@ -39,176 +40,206 @@
                 android:id="@+id/iv_profile"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
+                android:background="@color/secondary_variant"
                 android:scaleType="fitCenter"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                android:background="@color/secondary_variant" />
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
 
             <!-- Plus Button -->
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/btn_upload_pic"
                 android:layout_width="32dp"
+                android:visibility="gone"
                 android:layout_height="32dp"
                 android:layout_gravity="bottom|end"
-                android:src="@drawable/ic_add_circle"
-                android:tint="@color/primary"
                 android:backgroundTint="@color/surface"
-                />
+                android:src="@drawable/ic_add_circle"
+                android:tint="@color/primary" />
         </FrameLayout>
 
         <!-- Add Photo Label -->
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/add_photo"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#1B4332"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:text="@string/profile_picture"
+            android:textColor="#1B4332"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <!-- Full Name Label -->
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/full_name"
-            android:textSize="11sp"
-            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
             android:letterSpacing="0.1"
+            android:text="@string/full_name"
             android:textColor="@color/primary"
-            android:layout_marginBottom="8dp" />
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.Material3.TextInputLayout.FilledBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:boxBackgroundColor="@color/surface"
             app:boxCornerRadiusBottomEnd="32dp"
             app:boxCornerRadiusBottomStart="32dp"
             app:boxCornerRadiusTopEnd="32dp"
             app:boxCornerRadiusTopStart="32dp"
             app:boxStrokeWidth="0dp"
             app:boxStrokeWidthFocused="0dp"
-            app:boxBackgroundColor="@color/surface"
-            app:hintTextColor="@color/on_surface"
-            android:layout_marginBottom="24dp">
+            app:hintTextColor="@color/on_surface">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_name"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:hint="@string/name"
-            android:textColor="@color/on_surface"
-            android:inputType="textPersonName"
-            android:fontFamily="@font/plus_jakarta_sans"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_name"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:fontFamily="@font/plus_jakarta_sans"
+                android:hint="@string/name"
+                android:inputType="textPersonName"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:textColor="@color/on_surface" />
 
-    </com.google.android.material.textfield.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Family Role Label -->
-    <com.google.android.material.textview.MaterialTextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/your_family_role"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.1"
-        android:textColor="@color/primary"
-        android:layout_marginBottom="8dp" />
+        <!-- Family Role Label -->
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:letterSpacing="0.1"
+            android:text="@string/your_family_role"
+            android:textColor="@color/primary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
-    <!-- The Dropdown Container -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:hintEnabled="false"
-        app:boxStrokeWidth="0dp"
-        app:boxStrokeWidthFocused="0dp"
-        app:boxBackgroundColor="@color/surface"
-        app:boxCornerRadiusTopStart="100dp"
-        app:boxCornerRadiusTopEnd="100dp"
-        app:boxCornerRadiusBottomStart="100dp"
-        app:boxCornerRadiusBottomEnd="100dp"
-        android:layout_marginBottom="24dp"
-        app:endIconDrawable="@drawable/ic_arrow_down"
-        app:endIconTint="@color/on_surface">
-
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/sp_role"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:hint="@string/select_your_role"
-            android:paddingTop="5dp"
-            android:inputType="none"
-            android:fontFamily="@font/plus_jakarta_sans"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:textColor="@color/on_background"
-            app:dropDownBackgroundTint="@color/surface"
-            android:textColorHint="@color/on_surface" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/secondary_variant"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
-        android:layout_marginBottom="24dp">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <!-- The Dropdown Container -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="20dp">
+            android:layout_marginBottom="24dp"
+            app:boxBackgroundColor="@color/surface"
+            app:boxCornerRadiusBottomEnd="100dp"
+            app:boxCornerRadiusBottomStart="100dp"
+            app:boxCornerRadiusTopEnd="100dp"
+            app:boxCornerRadiusTopStart="100dp"
+            app:boxStrokeWidth="0dp"
+            app:boxStrokeWidthFocused="0dp"
+            app:endIconDrawable="@drawable/ic_arrow_down"
+            app:endIconTint="@color/on_surface"
+            app:hintEnabled="false">
 
-            <!-- Circular Icon Background and Shield Icon -->
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/info_icon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_light_green_circle"
-                android:padding="12dp"
-                android:src="@drawable/ic_shield_check"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:tint="@color/primary" />
-
-            <!-- Information Text -->
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/sp_role"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
                 android:fontFamily="@font/plus_jakarta_sans"
-                android:text="@string/helps_your_family"
-                android:textColor="@color/primary"
-                android:textSize="15sp"
-                android:lineSpacingExtra="4dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/info_icon"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                android:hint="@string/select_your_role"
+                android:inputType="none"
+                android:paddingStart="24dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="24dp"
+                android:textColor="@color/on_background"
+                android:textColorHint="@color/on_surface"
+                app:dropDownBackgroundTint="@color/surface" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
-    </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ti_other"
+            style="@style/Widget.Material3.TextInputLayout.FilledBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:boxBackgroundColor="@color/surface"
+            app:boxCornerRadiusBottomEnd="32dp"
+            app:boxCornerRadiusBottomStart="32dp"
+            app:boxCornerRadiusTopEnd="32dp"
+            app:boxCornerRadiusTopStart="32dp"
+            app:boxStrokeWidth="0dp"
+            app:boxStrokeWidthFocused="0dp"
+            app:hintTextColor="@color/on_surface">
 
-    <!-- Save and Continue Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_save"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="@string/save_and_continue"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:icon="@drawable/ic_arrow_right_big"
-        app:iconGravity="textEnd"
-        android:textColor="@color/on_primary"
-        android:backgroundTint="@color/primary"
-        android:layout_gravity="center_horizontal" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_other"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:fontFamily="@font/plus_jakarta_sans"
+                android:hint="@string/your_role"
+                android:inputType="textPersonName"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:textColor="@color/on_surface" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/secondary_variant"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp">
+
+                <!-- Circular Icon Background and Shield Icon -->
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/info_icon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_light_green_circle"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_shield_check"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/primary" />
+
+                <!-- Information Text -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:fontFamily="@font/plus_jakarta_sans"
+                    android:lineSpacingExtra="4dp"
+                    android:text="@string/helps_your_family"
+                    android:textColor="@color/primary"
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/info_icon"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Save and Continue Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_gravity="center_horizontal"
+            android:backgroundTint="@color/primary"
+            android:text="@string/save_and_continue"
+            android:textColor="@color/on_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:icon="@drawable/ic_arrow_right_big"
+            app:iconGravity="textEnd" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </ScrollView>
